@@ -12,7 +12,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import androidx.core.app.NotificationCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import com.englesoft.netspeedindicator.MainActivity
@@ -29,11 +28,9 @@ object NotificationHelper {
     const val NOTIFICATION_ID = 1001
     private var cachedTypeface: Typeface? = null
 
-    private fun getStatusTypeface(context: Context): Typeface {
-        return cachedTypeface ?: ResourcesCompat.getFont(
-            context,
-            R.font.quicksand_semi_bold
-        )!!.also { cachedTypeface = it }
+    private fun getStatusTypeface(): Typeface {
+        return cachedTypeface ?: Typeface.create("sans-serif-condensed", Typeface.BOLD)
+            .also { cachedTypeface = it }
     }
 
 
@@ -97,7 +94,7 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
         if (speedValue != null && speedUnit != null) {
-            val icon = createStatusIcon(context, speedValue, speedUnit)
+            val icon = createStatusIcon(speedValue, speedUnit)
             builder.setSmallIcon(icon)
         } else {
             builder.setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -106,21 +103,18 @@ object NotificationHelper {
         return builder.build()
     }
 
-    private fun createStatusIcon(context: Context, value: String, unit: String): IconCompat {
+    private fun createStatusIcon(value: String, unit: String): IconCompat {
         val size = 96
         val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
-        
-        // Use condensed font to match system status bar style
-        val typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
 
         // Dynamic text size based on length
         // Balance: Value needs to be smaller to allow readable unit size
-        val baseTextSize = if (value.length >= 3) 58f else 68f
-        val unitTextSize = if (value.length >= 3) 36f else 40f // Increased for readability
+        val baseTextSize = if (value.length >= 3 && !value.contains(".")) 62f else 72f
+        val unitTextSize = 42f
 
         val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.typeface = typeface
+            this.typeface = getStatusTypeface()
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
             textSize = baseTextSize
@@ -128,7 +122,7 @@ object NotificationHelper {
         }
 
         val unitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.typeface = typeface
+            this.typeface = getStatusTypeface()
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
             textSize = unitTextSize
