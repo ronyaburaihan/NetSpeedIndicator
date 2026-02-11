@@ -56,27 +56,35 @@ object FormatUtils {
     /**
      * Format speed for status bar icon (compact)
      * @param bytesPerSecond Speed in bytes per second
-     * @return Pair of (Value String, Unit String) e.g. ("1.5", "MB")
+     * @return Pair of (Value String, Unit String) e.g. ("50", "KB")
      */
     fun formatSpeedCompact(bytesPerSecond: Long): Pair<String, String> {
-        if (bytesPerSecond < 1024) return Pair(bytesPerSecond.toString(), "B")
-
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = (Math.log10(bytesPerSecond.toDouble()) / Math.log10(1024.0)).toInt()
-
-        val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
-        val unit = units[digitGroups]
+        val value: Double
+        val unit: String
         
-        // If value is >= 100, no decimal (e.g. "120 KB")
-        // If value is < 10, 1 decimal (e.g. "1.5 MB")
-        // If value is >= 10, no decimal (e.g. "15 MB") - simpler for small icon
-        // Handle rounding edge case: 9.95 -> 10.0 (4 chars) -> show 10 (2 chars)
-        val formattedValue = if (value >= 9.95) {
-            String.format("%.0f", value)
+        if (bytesPerSecond >= 1024 * 1024 * 1024) { // GB
+             value = bytesPerSecond / (1024.0 * 1024 * 1024)
+             unit = "GB"
+        } else if (bytesPerSecond >= 999 * 1024) { // Switch to MB at ~1000 KB to avoid 4 digits (e.g. 1023 KB)
+             value = bytesPerSecond / (1024.0 * 1024)
+             unit = "MB"
         } else {
-            String.format("%.1f", value)
+             // KB (Default minimum unit)
+             value = bytesPerSecond / 1024.0
+             unit = "KB"
+        }
+
+        val formattedValue = if (unit == "KB") {
+            String.format("%.0f", value) // Integer for KB
+        } else {
+             // MB or GB: Show decimal if < 100, else integer to save space
+             if (value >= 99.95) {
+                String.format("%.0f", value)
+            } else {
+                String.format("%.1f", value)
+            }
         }
         
-        return Pair(formattedValue, unit)
+        return Pair(formattedValue, "$unit/s")
     }
 }
