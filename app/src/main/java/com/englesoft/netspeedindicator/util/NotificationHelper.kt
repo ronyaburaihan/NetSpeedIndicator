@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -18,7 +17,6 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
 import com.englesoft.netspeedindicator.MainActivity
 import com.englesoft.netspeedindicator.R
-import kotlin.math.abs
 
 /**
  * Helper class for creating and managing notifications
@@ -61,17 +59,19 @@ object NotificationHelper {
 
     /**
      * Build notification for speed monitoring
-     * @param downloadSpeed Download speed text (e.g., "2.1 MB/s")
-     * @param uploadSpeed Upload speed text (e.g., "480 KB/s")
-     * @param todayUsage Today's total usage (e.g., "650 MB")
+     * @param speed Current speed text (e.g., "29 KB/s")
+     * @param mobileUsage Mobile data usage text (e.g., "57.7 MB")
+     * @param wifiUsage WiFi data usage text (e.g., "1.35 GB")
+     * @param signal Signal strength text (e.g., "100%")
      * @param speedValue Speed value string (e.g., "1.5") - for icon
      * @param speedUnit Speed unit string (e.g., "MB") - for icon
      */
     fun buildNotification(
         context: Context,
-        downloadSpeed: String,
-        uploadSpeed: String,
-        todayUsage: String,
+        speed: String,
+        mobileUsage: String,
+        wifiUsage: String,
+        signal: String,
         speedValue: String? = null,
         speedUnit: String? = null
     ): Notification {
@@ -87,9 +87,8 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Net Speed Monitor")
-            .setContentText("↓ $downloadSpeed   ↑ $uploadSpeed")
-            .setSubText("Today: $todayUsage")
+            .setContentTitle("Speed: $speed   Signal $signal")
+            .setContentText("Mobile: $mobileUsage   WiFi: $wifiUsage")
             .setOngoing(true) // Cannot be dismissed
             .setOnlyAlertOnce(true) // No sound/vibration on updates
             .setSilent(true)

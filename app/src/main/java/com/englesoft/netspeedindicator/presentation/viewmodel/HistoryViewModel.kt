@@ -64,17 +64,40 @@ class HistoryViewModel @Inject constructor(
         }
     }
     
-    fun loadDailyUsage(days: Int = 30) {
+    fun loadDailyUsage(days: Int = 31) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val usage = getDailyUsageUseCase.getLastNDays(days)
-                _dailyUsage.value = usage
+                // Fetch existing usage from DB
+                val dbUsageList = getDailyUsageUseCase.getLastNDays(days)
+                val dbUsageMap = dbUsageList.associateBy { it.date }
                 
-                // Immediately check if we have a fresher value from Manager
+                // Generate full list of dates for the last N days
+                val fullList = mutableListOf<UsageModel>()
+                val today = LocalDate.now()
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                
+                for (i in 0 until days) {
+                    val date = today.minusDays(i.toLong())
+                    val dateStr = date.format(formatter)
+                    
+                    // Use existing data or create zero-usage model
+                    val usage = dbUsageMap[dateStr] ?: UsageModel(
+                        date = dateStr,
+                        wifiRxBytes = 0,
+                        wifiTxBytes = 0,
+                        mobileRxBytes = 0,
+                        mobileTxBytes = 0
+                    )
+                    fullList.add(usage)
+                }
+                
+                _dailyUsage.value = fullList
+                
+                // Immediately check if we have a fresher value from Manager (for Today)
                 val liveUsage = trafficStateManager.dailyUsage.value
                 if (liveUsage != null) {
-                    val currentList = usage.toMutableList()
+                    val currentList = fullList.toMutableList()
                     val index = currentList.indexOfFirst { it.date == liveUsage.date }
                     if (index != -1) {
                         currentList[index] = liveUsage

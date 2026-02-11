@@ -79,8 +79,9 @@ class SpeedMonitorService : Service() {
         val notification = NotificationHelper.buildNotification(
             this,
             "0 B/s",
-            "0 B/s",
-            "0 B"
+            "0 B",
+            "0 B",
+            "--%"
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -149,18 +150,25 @@ class SpeedMonitorService : Service() {
 
                     // 5. Format strings for Notification
                     val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
-                    val uploadSpeed = FormatUtils.formatSpeed(speed.uploadBytesPerSecond)
-                    val todayUsageStr = FormatUtils.formatBytes(liveUsage.totalBytes)
+                    
+                    val mobileUsageTotal = liveUsage.mobileRxBytes + liveUsage.mobileTxBytes
+                    val wifiUsageTotal = liveUsage.wifiRxBytes + liveUsage.wifiTxBytes
+                    
+                    val mobileUsageStr = FormatUtils.formatBytes(mobileUsageTotal)
+                    val wifiUsageStr = FormatUtils.formatBytes(wifiUsageTotal)
                     
                     // Format for Status Bar Icon (Compact)
                     val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.downloadBytesPerSecond)
                     
+                    val signalStrength = getSignalStrength()
+
                     // 6. Update Notification (Use notify, NOT startForeground repeatedly)
                     val notification = NotificationHelper.buildNotification(
                         this@SpeedMonitorService,
                         downloadSpeed,
-                        uploadSpeed,
-                        todayUsageStr,
+                        mobileUsageStr,
+                        wifiUsageStr,
+                        signalStrength,
                         speedValue,
                         speedUnit
                     )
@@ -218,6 +226,21 @@ class SpeedMonitorService : Service() {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    private fun getSignalStrength(): String {
+        try {
+            if (isWifiConnected()) {
+                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+                val info = wifiManager.connectionInfo
+                @Suppress("DEPRECATION")
+                val level = android.net.wifi.WifiManager.calculateSignalLevel(info.rssi, 100)
+                return "$level%"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return "--%"
     }
     
     override fun onDestroy() {
