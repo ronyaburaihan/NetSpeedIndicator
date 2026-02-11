@@ -1,20 +1,14 @@
 package com.englesoft.netspeedindicator.presentation.ui.navigation
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.englesoft.netspeedindicator.presentation.ui.screen.HistoryScreen
 import com.englesoft.netspeedindicator.presentation.ui.screen.HomeScreen
@@ -36,7 +30,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    
+
     NavHost(
         navController = navController,
         startDestination = Screen.History.route
