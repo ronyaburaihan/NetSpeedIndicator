@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
@@ -36,26 +38,26 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class SpeedMonitorService : Service() {
-    
+
     @Inject
     lateinit var getCurrentSpeedUseCase: GetCurrentSpeedUseCase
-    
+
     @Inject
     lateinit var getDailyUsageUseCase: GetDailyUsageUseCase
-    
+
     @Inject
     lateinit var saveUsageUseCase: SaveUsageUseCase
 
     @Inject
     lateinit var trafficStateManager: TrafficStateManager
-    
+
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private var monitoringJob: Job? = null
-    
+
     // Session tracking
     private var sessionRxBytes = 0L
     private var sessionTxBytes = 0L
-    
+
     private var sessionWifiRxBytes = 0L
     private var sessionWifiTxBytes = 0L
     private var sessionMobileRxBytes = 0L
@@ -63,18 +65,18 @@ class SpeedMonitorService : Service() {
 
     // Base usage loaded from DB
     private var baseUsage: UsageModel? = null
-    
+
     // System Services
     private lateinit var notificationManager: NotificationManager
     private lateinit var connectivityManager: ConnectivityManager
-    
+
     override fun onCreate() {
         super.onCreate()
         NotificationHelper.createNotificationChannel(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
-    
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = NotificationHelper.buildNotification(
             this,
@@ -98,19 +100,19 @@ class SpeedMonitorService : Service() {
         } else {
             startForeground(NotificationHelper.NOTIFICATION_ID, notification)
         }
-        
+
         startMonitoring()
-        
+
         return START_STICKY
     }
-    
+
     private fun startMonitoring() {
         monitoringJob?.cancel()
-        
+
         monitoringJob = serviceScope.launch {
             // Load today's usage from DB
             loadTodayUsage()
-            
+
             // Start speed monitoring
             getCurrentSpeedUseCase()
                 .catch { e ->
@@ -122,11 +124,11 @@ class SpeedMonitorService : Service() {
 
                     // 2. Attribute usage to network type
                     val isWifi = isWifiConnected()
-                    
+
                     // Increment session counters
                     sessionRxBytes += speed.downloadBytesPerSecond
                     sessionTxBytes += speed.uploadBytesPerSecond
-                    
+
                     if (isWifi) {
                         sessionWifiRxBytes += speed.downloadBytesPerSecond
                         sessionWifiTxBytes += speed.uploadBytesPerSecond
@@ -134,32 +136,33 @@ class SpeedMonitorService : Service() {
                         sessionMobileRxBytes += speed.downloadBytesPerSecond
                         sessionMobileTxBytes += speed.uploadBytesPerSecond
                     }
-                    
+
                     // 3. Create Live Usage Model
                     // Base + Session
                     val liveUsage = UsageModel(
-                        date = baseUsage?.date ?: LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        date = baseUsage?.date ?: LocalDate.now()
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                         wifiRxBytes = (baseUsage?.wifiRxBytes ?: 0L) + sessionWifiRxBytes,
                         wifiTxBytes = (baseUsage?.wifiTxBytes ?: 0L) + sessionWifiTxBytes,
                         mobileRxBytes = (baseUsage?.mobileRxBytes ?: 0L) + sessionMobileRxBytes,
                         mobileTxBytes = (baseUsage?.mobileTxBytes ?: 0L) + sessionMobileTxBytes
                     )
-                    
+
                     // 4. Update State Manager for Usage (Syncs UI)
                     trafficStateManager.updateDailyUsage(liveUsage)
 
                     // 5. Format strings for Notification
                     val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
-                    
+
                     val mobileUsageTotal = liveUsage.mobileRxBytes + liveUsage.mobileTxBytes
                     val wifiUsageTotal = liveUsage.wifiRxBytes + liveUsage.wifiTxBytes
-                    
+
                     val mobileUsageStr = FormatUtils.formatBytes(mobileUsageTotal)
                     val wifiUsageStr = FormatUtils.formatBytes(wifiUsageTotal)
-                    
+
                     // Format for Status Bar Icon (Compact)
                     val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.downloadBytesPerSecond)
-                    
+
                     val signalStrength = getSignalStrength()
 
                     // 6. Update Notification (Use notify, NOT startForeground repeatedly)
@@ -175,7 +178,7 @@ class SpeedMonitorService : Service() {
                     notificationManager.notify(NotificationHelper.NOTIFICATION_ID, notification)
                 }
         }
-        
+
         // Periodic save job (every 1 minute)
         serviceScope.launch {
             while (true) {
@@ -184,7 +187,7 @@ class SpeedMonitorService : Service() {
             }
         }
     }
-    
+
     private suspend fun loadTodayUsage() {
         val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         baseUsage = getDailyUsageUseCase.getByDate(todayStr) ?: UsageModel(
@@ -199,11 +202,11 @@ class SpeedMonitorService : Service() {
         sessionMobileRxBytes = 0L
         sessionMobileTxBytes = 0L
     }
-    
+
     private suspend fun saveCurrentUsage() {
         // Do not save if baseUsage is not loaded yet
         val currentBase = baseUsage ?: return
-        
+
         // Create current total model (Base + Session)
         // We do NOT reset session counters here to avoid race conditions with the collector
         val currentTotalUsage = UsageModel(
@@ -213,15 +216,15 @@ class SpeedMonitorService : Service() {
             mobileRxBytes = currentBase.mobileRxBytes + sessionMobileRxBytes,
             mobileTxBytes = currentBase.mobileTxBytes + sessionMobileTxBytes
         )
-        
+
         // Save to DB (Overwrite existing record for this date)
         saveUsageUseCase(currentTotalUsage)
-        
+
         // Note: We do NOT update baseUsage to currentTotalUsage and reset session.
         // We keep baseUsage as the "snapshot at start" and session as "delta since start".
         // This is thread-safe(r) because only the collector writes to session counters.
     }
-    
+
     private fun isWifiConnected(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
@@ -231,26 +234,67 @@ class SpeedMonitorService : Service() {
     private fun getSignalStrength(): String {
         try {
             if (isWifiConnected()) {
-                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
-                val info = wifiManager.connectionInfo
-                @Suppress("DEPRECATION")
-                val level = android.net.wifi.WifiManager.calculateSignalLevel(info.rssi, 100)
-                return "$level%"
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // Android 12+ - Use ConnectivityManager
+                    val connectivityManager =
+                        applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val network = connectivityManager.activeNetwork
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+
+                    if (networkCapabilities != null && networkCapabilities.hasTransport(
+                            NetworkCapabilities.TRANSPORT_WIFI
+                        )
+                    ) {
+                        val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
+                        wifiInfo?.let {
+                            val rssi = it.rssi
+                            val percentage = calculatePercentage(rssi)
+                            return "$percentage%"
+                        }
+                    }
+                } else {
+                    // Below Android 12 - Use WifiManager
+                    @Suppress("DEPRECATION")
+                    val wifiManager =
+                        applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+                    @Suppress("DEPRECATION")
+                    val info = wifiManager.connectionInfo
+                    val rssi = info.rssi
+                    val percentage = calculatePercentage(rssi)
+                    return "$percentage%"
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return "--%"
+        return ""
     }
-    
+
+    private fun calculatePercentage(rssi: Int): Int {
+        return when {
+            rssi >= -50 -> 100
+            rssi >= -60 -> 80 + ((rssi + 60) * 2)
+            rssi >= -70 -> 60 + ((rssi + 70) * 2)
+            rssi >= -80 -> 40 + ((rssi + 80) * 2)
+            rssi >= -90 -> 20 + ((rssi + 90) * 2)
+            else -> maxOf(0, 100 + rssi)
+        }.coerceIn(0, 100)
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
-        val restartServiceIntent = Intent(applicationContext, SpeedMonitorService::class.java).also {
-            it.setPackage(packageName)
-        }
+        val restartServiceIntent =
+            Intent(applicationContext, SpeedMonitorService::class.java).also {
+                it.setPackage(packageName)
+            }
         val restartServicePendingIntent = android.app.PendingIntent.getService(
-            this, 1, restartServiceIntent, android.app.PendingIntent.FLAG_ONE_SHOT or android.app.PendingIntent.FLAG_IMMUTABLE
+            this,
+            1,
+            restartServiceIntent,
+            android.app.PendingIntent.FLAG_ONE_SHOT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
-        val alarmService = applicationContext.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        val alarmService =
+            applicationContext.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
         alarmService.set(
             android.app.AlarmManager.ELAPSED_REALTIME,
             android.os.SystemClock.elapsedRealtime() + 1000,
@@ -261,19 +305,19 @@ class SpeedMonitorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        
+
         // Save usage before stopping
         // Use runBlocking to ensure save completes before service is destroyed
         runBlocking {
             saveCurrentUsage()
         }
-        
+
         monitoringJob?.cancel()
         serviceScope.cancel()
     }
-    
+
     override fun onBind(intent: Intent?): IBinder? = null
-    
+
     companion object {
         const val ACTION_START = "com.englesoft.netspeedindicator.START_MONITORING"
         const val ACTION_STOP = "com.englesoft.netspeedindicator.STOP_MONITORING"
