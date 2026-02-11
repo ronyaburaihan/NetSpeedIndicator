@@ -93,12 +93,11 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
-        if (speedValue != null && speedUnit != null) {
-            val icon = createStatusIcon(speedValue, speedUnit)
-            builder.setSmallIcon(icon)
-        } else {
-            builder.setSmallIcon(R.drawable.ic_launcher_foreground)
-        }
+        val icon = createStatusIcon(
+            speedValue ?: "0",
+            speedUnit ?: "KB/s"
+        )
+        builder.setSmallIcon(icon)
 
         return builder.build()
     }
