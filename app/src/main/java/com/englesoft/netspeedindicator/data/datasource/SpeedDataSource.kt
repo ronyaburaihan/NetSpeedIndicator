@@ -36,9 +36,13 @@ class SpeedDataSource @Inject constructor() {
             val currentTimestamp = System.currentTimeMillis()
             
             // Calculate delta
-            val rxDelta = currentRxBytes - lastRxBytes
-            val txDelta = currentTxBytes - lastTxBytes
+            var rxDelta = currentRxBytes - lastRxBytes
+            var txDelta = currentTxBytes - lastTxBytes
             val timeDelta = currentTimestamp - lastTimestamp
+            
+            // Handle counter reset (e.g., reboot or overflow)
+            if (rxDelta < 0) rxDelta = currentRxBytes
+            if (txDelta < 0) txDelta = currentTxBytes
             
             // Calculate bytes per second
             val downloadSpeed = if (timeDelta > 0) {
