@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,18 +25,20 @@ import java.util.Locale
 /**
  * History screen showing daily usage in a table format
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    viewModel: HistoryViewModel = hiltViewModel()
+    viewModel: HistoryViewModel = hiltViewModel(),
+    onSettingsClick: () -> Unit
 ) {
     val dailyUsage by viewModel.dailyUsage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    
+
     // Calculate This Month's Total
     val currentMonthPrefix = remember {
         LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
     }
-    
+
     val thisMonthUsage = remember(dailyUsage) {
         val monthUsages = dailyUsage.filter { it.date.startsWith(currentMonthPrefix) }
         UsageModel(
@@ -46,51 +50,87 @@ fun HistoryScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // Table Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min) // Prevent full screen expansion
-                .background(Color(0xFF555555)) // Dark gray header
-                .padding(bottom = 2.dp), // Separator
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TableCell(text = "Date", weight = 1.2f, isHeader = true)
-            // 2dp separator
-            Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
-            TableCell(text = "Mobile", weight = 1f, isHeader = true)
-            Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
-            TableCell(text = "WiFi", weight = 1f, isHeader = true)
-            Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
-            TableCell(text = "Total", weight = 1f, isHeader = true)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Net Speed Monitor") },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF555555),
+                    titleContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
+            )
         }
-        
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White)
+        ) {
+            // Table Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min) // Prevent full screen expansion
+                    .background(Color(0xFF555555)) // Dark gray header
+                    .padding(bottom = 2.dp), // Separator
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                CircularProgressIndicator()
+                TableCell(text = "Date", weight = 1.2f, isHeader = true)
+                // 2dp separator
+                Spacer(modifier = Modifier
+                    .width(2.dp)
+                    .fillMaxHeight()
+                    .background(Color.White))
+                TableCell(text = "Mobile", weight = 1f, isHeader = true)
+                Spacer(modifier = Modifier
+                    .width(2.dp)
+                    .fillMaxHeight()
+                    .background(Color.White))
+                TableCell(text = "WiFi", weight = 1f, isHeader = true)
+                Spacer(modifier = Modifier
+                    .width(2.dp)
+                    .fillMaxHeight()
+                    .background(Color.White))
+                TableCell(text = "Total", weight = 1f, isHeader = true)
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f) // Take remaining space
-            ) {
-                // Usage List (Sorted by date descending is assumed from ViewModel)
-                items(dailyUsage) { usage ->
-                    UsageRow(usage = usage)
-                    // Horizontal separator
-                    Spacer(modifier = Modifier.height(2.dp).fillMaxWidth().background(Color.White))
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                
-                // This Month Footer
-                item {
-                    UsageRow(usage = thisMonthUsage)
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f) // Take remaining space
+                ) {
+                    // Usage List (Sorted by date descending is assumed from ViewModel)
+                    items(dailyUsage) { usage ->
+                        UsageRow(usage = usage)
+                        // Horizontal separator
+                        Spacer(
+                            modifier = Modifier
+                                .height(2.dp)
+                                .fillMaxWidth()
+                                .background(Color.White)
+                        )
+                    }
+
+                    // This Month Footer
+                    item {
+                        UsageRow(usage = thisMonthUsage)
+                    }
                 }
             }
         }
@@ -100,7 +140,7 @@ fun HistoryScreen(
 @Composable
 fun UsageRow(usage: UsageModel) {
     val dateStr = formatDate(usage.date)
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,15 +163,24 @@ fun UsageRow(usage: UsageModel) {
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
-        
+
         // Vertical Separator
-        Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
-        
+        Spacer(modifier = Modifier
+            .width(2.dp)
+            .fillMaxHeight()
+            .background(Color.White))
+
         // Data Columns (Light Background)
         DataCell(text = formatUsageBytes(usage.mobileTotalBytes), weight = 1f)
-        Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
+        Spacer(modifier = Modifier
+            .width(2.dp)
+            .fillMaxHeight()
+            .background(Color.White))
         DataCell(text = formatUsageBytes(usage.wifiTotalBytes), weight = 1f)
-        Spacer(modifier = Modifier.width(2.dp).fillMaxHeight().background(Color.White))
+        Spacer(modifier = Modifier
+            .width(2.dp)
+            .fillMaxHeight()
+            .background(Color.White))
         DataCell(text = formatUsageBytes(usage.totalBytes), weight = 1f)
     }
 }
@@ -182,9 +231,9 @@ fun formatDate(dateString: String): String {
     try {
         val date = LocalDate.parse(dateString)
         val today = LocalDate.now()
-        
+
         if (date == today) return "Today"
-        
+
         val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)
         return date.format(formatter)
     } catch (e: Exception) {
@@ -194,12 +243,12 @@ fun formatDate(dateString: String): String {
 
 fun formatUsageBytes(bytes: Long): String {
     if (bytes == 0L) return "0 MB"
-    
+
     val gb = bytes / (1024.0 * 1024.0 * 1024.0)
     if (gb >= 1.0) {
         return String.format(Locale.US, "%.2f GB", gb)
     }
-    
+
     val mb = bytes / (1024.0 * 1024.0)
     return String.format(Locale.US, "%.0f MB", mb)
 }

@@ -36,55 +36,23 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    val items = listOf(
-        Screen.Home,
-        Screen.History,
-        Screen.Settings
-    )
     
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                // Avoid multiple copies of the same destination
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-            }
+    NavHost(
+        navController = navController,
+        startDestination = Screen.History.route
+    ) {
+        composable(Screen.Home.route) {
+            HomeScreen()
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Screen.Home.route) {
-                HomeScreen()
-            }
-            composable(Screen.History.route) {
-                HistoryScreen()
-            }
-            composable(Screen.Settings.route) {
-                SettingsScreen()
-            }
+        composable(Screen.History.route) {
+            HistoryScreen(
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
+                }
+            )
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen()
         }
     }
 }
