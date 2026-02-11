@@ -176,10 +176,10 @@ class SpeedMonitorService : Service() {
                 }
         }
         
-        // Periodic save job (every 5 minutes)
+        // Periodic save job (every 1 minute)
         serviceScope.launch {
             while (true) {
-                delay(5 * 60 * 1000L) // 5 minutes
+                delay(1 * 60 * 1000L) // 1 minute
                 saveCurrentUsage()
             }
         }
