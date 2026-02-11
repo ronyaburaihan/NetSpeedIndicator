@@ -110,22 +110,28 @@ object NotificationHelper {
         val size = 96
         val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
-        val typeface = getStatusTypeface(context)
+        
+        // Use condensed font to match system status bar style
+        val typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+
+        // Dynamic text size based on length
+        // Balance: Value needs to be smaller to allow readable unit size
+        val baseTextSize = if (value.length >= 3) 58f else 68f
+        val unitTextSize = if (value.length >= 3) 36f else 40f // Increased for readability
 
         val valuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.typeface = typeface
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
-            textSize = 62f // Large visibility
-            style = Paint.Style.FILL_AND_STROKE
-            strokeWidth = 1.2f // Adds physical weight/thickness
+            textSize = baseTextSize
+            style = Paint.Style.FILL
         }
 
         val unitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.typeface = typeface
             color = Color.WHITE
             textAlign = Paint.Align.CENTER
-            textSize = 28f
+            textSize = unitTextSize
             style = Paint.Style.FILL
         }
 
@@ -139,20 +145,22 @@ object NotificationHelper {
         val vHeight = vBounds.height()
         val uHeight = uBounds.height()
 
-        // 3. Set spacing to 0 or negative to "glue" them together
-        val spacing = -1f
+        // 3. Set spacing - smaller gap to fit larger text
+        val spacing = 4f
         val totalHeight = vHeight + uHeight + spacing
 
         val centerX = size / 2f
+        // Start drawing from vertical center - half total height
+        // No extra offset to maximize space
         val startY = (size - totalHeight) / 2f
 
         // 4. Draw Value
-        // We adjust by -vBounds.top because top is usually a negative offset from baseline
+        // Align top of value to startY
         val valueBaseline = startY - vBounds.top
         canvas.drawText(value, centerX, valueBaseline, valuePaint)
 
         // 5. Draw Unit (Immediately below the value's bottom edge)
-        val unitBaseline = valueBaseline + vBounds.bottom - uBounds.top + spacing
+        val unitBaseline = valueBaseline + vBounds.bottom + spacing - uBounds.top
         canvas.drawText(unit, centerX, unitBaseline, unitPaint)
 
         return IconCompat.createWithBitmap(bitmap)
