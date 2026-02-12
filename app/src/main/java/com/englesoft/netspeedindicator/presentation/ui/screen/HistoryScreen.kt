@@ -28,15 +28,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.pow
 
-// Custom Colors based on the UI image
-private val DarkBackground = Color(0xFF161920)
-private val CardBackground = Color(0xFF1E222C)
-private val HeaderBlue = Color(0xFF3366E6) // Bright blue for DATE header
-private val TextBlue = Color(0xFF448AFF)   // Light blue for text highlights
-private val TextWhite = Color(0xFFEEEEEE)
-private val TextGray = Color(0xFFAAAAAA)
-private val GridLineColor = Color(0xFF2A2E3A)
-
 /**
  * History screen showing daily usage in a table format with a monthly summary card
  */
@@ -66,13 +57,13 @@ fun HistoryScreen(
     }
 
     Scaffold(
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { 
                     Text(
                         "Internet Speed Indicator",
-                        color = TextWhite,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp
                     ) 
                 },
@@ -81,12 +72,12 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
-                            tint = HeaderBlue
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBackground
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -95,7 +86,7 @@ fun HistoryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(DarkBackground)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
             // Table
@@ -103,8 +94,8 @@ fun HistoryScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .border(1.dp, GridLineColor, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(CardBackground, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
             ) {
                 // Header
                 TableHeader()
@@ -114,7 +105,7 @@ fun HistoryScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = HeaderBlue)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 } else {
                     LazyColumn(
@@ -122,7 +113,7 @@ fun HistoryScreen(
                     ) {
                         items(dailyUsage) { usage ->
                             UsageRow(usage = usage)
-                            Divider(color = GridLineColor, thickness = 1.dp)
+                            Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
                         }
                     }
                 }
@@ -142,26 +133,26 @@ fun TableHeader() {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(CardBackground)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        // DATE Header (Blue Background)
+        // DATE Header (Primary Background)
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .background(HeaderBlue, RoundedCornerShape(topStart = 8.dp)),
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(topStart = 8.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "DATE",
-                color = TextWhite,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
         }
         
         // Vertical Divider
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // MOBILE Header
         Box(
@@ -174,20 +165,20 @@ fun TableHeader() {
                 Icon(
                     imageVector = Icons.Default.SignalCellularAlt,
                     contentDescription = null,
-                    tint = HeaderBlue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "MOBILE",
-                    color = HeaderBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
             }
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // WIFI Header
         Box(
@@ -200,20 +191,20 @@ fun TableHeader() {
                 Icon(
                     imageVector = Icons.Default.Wifi,
                     contentDescription = null,
-                    tint = HeaderBlue,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "WIFI",
-                    color = HeaderBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
             }
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // TOTAL Header
         Box(
@@ -224,13 +215,13 @@ fun TableHeader() {
         ) {
             Text(
                 text = "TOTAL",
-                color = HeaderBlue,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
         }
     }
-    Divider(color = GridLineColor, thickness = 1.dp)
+    Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 }
 
 @Composable
@@ -241,7 +232,7 @@ fun UsageRow(usage: UsageModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp) // Taller rows as per design
-            .background(CardBackground)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         // Date Column
         Column(
@@ -253,19 +244,19 @@ fun UsageRow(usage: UsageModel) {
         ) {
             Text(
                 text = dateParts.first, // OCT
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = dateParts.second, // 24
-                color = TextWhite,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // Mobile Column
         Box(
@@ -276,12 +267,12 @@ fun UsageRow(usage: UsageModel) {
         ) {
             Text(
                 text = formatData(usage.mobileTotalBytes),
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // WiFi Column
         Box(
@@ -292,12 +283,12 @@ fun UsageRow(usage: UsageModel) {
         ) {
             Text(
                 text = formatData(usage.wifiTotalBytes),
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(GridLineColor))
+        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
 
         // Total Column
         Box(
@@ -308,7 +299,7 @@ fun UsageRow(usage: UsageModel) {
         ) {
             Text(
                 text = formatData(usage.totalBytes),
-                color = TextBlue,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -321,7 +312,7 @@ fun MonthSummaryCard(usage: UsageModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -334,13 +325,13 @@ fun MonthSummaryCard(usage: UsageModel) {
             Column {
                 Text(
                     text = "This Month's Total",
-                    color = TextGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatData(usage.totalBytes),
-                    color = TextWhite,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -356,18 +347,18 @@ fun MonthSummaryCard(usage: UsageModel) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(HeaderBlue, androidx.compose.foundation.shape.CircleShape)
+                            .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Mobile",
-                        color = TextGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = formatData(usage.mobileTotalBytes),
-                        color = TextWhite,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -378,18 +369,18 @@ fun MonthSummaryCard(usage: UsageModel) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(TextGray, androidx.compose.foundation.shape.CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurfaceVariant, androidx.compose.foundation.shape.CircleShape)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "WiFi",
-                        color = TextGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = formatData(usage.wifiTotalBytes),
-                        color = TextWhite,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
