@@ -59,6 +59,7 @@ class SpeedMonitorService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private var monitoringJob: Job? = null
     private var showOnLockScreen = true
+    private var showUploadSpeed = false
 
     // Session tracking
     private var sessionRxBytes = 0L
@@ -90,10 +91,19 @@ class SpeedMonitorService : Service() {
                 showOnLockScreen = it
             }
         }
+        
+        // Observe upload speed preference
+        serviceScope.launch {
+            preferenceManager.showUploadSpeed.collect {
+                showUploadSpeed = it
+            }
+        }
 
         val notification = NotificationHelper.buildNotification(
             this,
             "0 B/s",
+            null,
+            "0 B",
             "0 B",
             "0 B",
             "--%"
@@ -166,6 +176,7 @@ class SpeedMonitorService : Service() {
 
                     // 5. Format strings for Notification
                     val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
+                    val uploadSpeedStr = if (showUploadSpeed) FormatUtils.formatSpeed(speed.uploadBytesPerSecond) else null
 
                     val mobileUsageTotal = liveUsage.mobileRxBytes + liveUsage.mobileTxBytes
                     val wifiUsageTotal = liveUsage.wifiRxBytes + liveUsage.wifiTxBytes
@@ -182,6 +193,7 @@ class SpeedMonitorService : Service() {
                     val notification = NotificationHelper.buildNotification(
                         this@SpeedMonitorService,
                         downloadSpeed,
+                        uploadSpeedStr,
                         mobileUsageStr,
                         wifiUsageStr,
                         signalStrength,

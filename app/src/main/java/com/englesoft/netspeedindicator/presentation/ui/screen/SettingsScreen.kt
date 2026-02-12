@@ -41,6 +41,7 @@ fun SettingsScreen(
     val appTheme by viewModel.appTheme.collectAsState()
     val dynamicColor by viewModel.dynamicColor.collectAsState()
     val lockScreenNotification by viewModel.lockScreenNotification.collectAsState()
+    val showUploadSpeed by viewModel.showUploadSpeed.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -100,8 +101,16 @@ fun SettingsScreen(
                     checked = lockScreenNotification,
                     onCheckedChange = { viewModel.setLockScreenNotification(it) }
                 )
-            }
 
+                // Show Upload Speed
+                SettingsSwitchRow(
+                    title = "Show Upload Speed",
+                    subtitle = "Show upload speed in notification",
+                    checked = showUploadSpeed,
+                    onCheckedChange = { viewModel.setShowUploadSpeed(it) }
+                )
+            }
+            
             // Permissions Section
             SettingsSection(title = "Permissions") {
                 // Usage Access

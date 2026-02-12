@@ -22,6 +22,7 @@ class PreferenceManager @Inject constructor(
         const val KEY_APP_THEME = "app_theme" // 0: System, 1: Light, 2: Dark
         const val KEY_DYNAMIC_COLOR = "dynamic_color"
         const val KEY_LOCK_SCREEN_NOTIFICATION = "lock_screen_notification"
+        const val KEY_SHOW_UPLOAD_SPEED = "show_upload_speed"
     }
 
     // App Theme
@@ -44,6 +45,13 @@ class PreferenceManager @Inject constructor(
 
     fun setLockScreenNotification(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_LOCK_SCREEN_NOTIFICATION, enabled).apply()
+    }
+
+    // Show Upload Speed
+    val showUploadSpeed: Flow<Boolean> = getBooleanFlow(KEY_SHOW_UPLOAD_SPEED, false)
+
+    fun setShowUploadSpeed(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_SHOW_UPLOAD_SPEED, enabled).apply()
     }
 
     private fun getIntFlow(key: String, defaultValue: Int): Flow<Int> = callbackFlow {

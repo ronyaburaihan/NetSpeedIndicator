@@ -37,6 +37,9 @@ class SettingsViewModel @Inject constructor(
 
     val lockScreenNotification = preferenceManager.lockScreenNotification
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val showUploadSpeed = preferenceManager.showUploadSpeed
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
@@ -68,6 +71,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setLockScreenNotification(enabled: Boolean) {
         preferenceManager.setLockScreenNotification(enabled)
+    }
+
+    fun setShowUploadSpeed(enabled: Boolean) {
+        preferenceManager.setShowUploadSpeed(enabled)
     }
 
     fun requestUsagePermission() {
