@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -95,6 +96,12 @@ fun HistoryScreen(
                             onClick = {
                                 showMenu = false
                                 viewModel.exitApp()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.StopCircle,
+                                    contentDescription = null
+                                )
                             }
                         )
                     }

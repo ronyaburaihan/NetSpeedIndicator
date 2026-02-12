@@ -37,6 +37,7 @@ fun SettingsScreen(
 ) {
     val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
     val isBatteryOptimizationDisabled by viewModel.isBatteryOptimizationDisabled.collectAsState()
+    val isAutoStartAvailable by viewModel.isAutoStartAvailable.collectAsState()
 
     val appTheme by viewModel.appTheme.collectAsState()
     val dynamicColor by viewModel.dynamicColor.collectAsState()
@@ -121,7 +122,7 @@ fun SettingsScreen(
                     onGrantClick = { viewModel.requestUsagePermission() }
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 // Battery Optimization
                 PermissionRow(
@@ -131,6 +132,17 @@ fun SettingsScreen(
                     onGrantClick = { viewModel.requestDisableBatteryOptimization() },
                     isCritical = true
                 )
+
+                if (isAutoStartAvailable) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    PermissionRow(
+                        title = "Auto Start",
+                        subtitle = "Allow app to start in background",
+                        isGranted = false, // Cannot detect reliably, so always show button
+                        onGrantClick = { viewModel.requestAutoStartPermission() },
+                        isCritical = true
+                    )
+                }
             }
 
             // About Section

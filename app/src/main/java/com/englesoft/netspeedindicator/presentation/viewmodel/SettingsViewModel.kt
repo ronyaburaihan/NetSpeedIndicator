@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
+import com.englesoft.netspeedindicator.util.AutoStartPermissionUtils
 import com.englesoft.netspeedindicator.util.PermissionUtils
 import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
@@ -46,6 +47,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _isBatteryOptimizationDisabled = MutableStateFlow(false)
     val isBatteryOptimizationDisabled: StateFlow<Boolean> = _isBatteryOptimizationDisabled.asStateFlow()
+
+    private val _isAutoStartAvailable = MutableStateFlow(false)
+    val isAutoStartAvailable: StateFlow<Boolean> = _isAutoStartAvailable.asStateFlow()
     
     init {
         checkPermissions()
@@ -54,6 +58,7 @@ class SettingsViewModel @Inject constructor(
     fun checkPermissions() {
         _hasUsagePermission.value = PermissionUtils.hasUsageStatsPermission(application)
         _isBatteryOptimizationDisabled.value = checkBatteryOptimization()
+        _isAutoStartAvailable.value = AutoStartPermissionUtils.isAutoStartPermissionAvailable(application)
     }
 
     private fun checkBatteryOptimization(): Boolean {
@@ -96,5 +101,9 @@ class SettingsViewModel @Inject constructor(
             }
             application.startActivity(intent)
         }
+    }
+
+    fun requestAutoStartPermission() {
+        AutoStartPermissionUtils.requestAutoStartPermission(application)
     }
 }
