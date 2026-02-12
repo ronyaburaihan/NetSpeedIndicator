@@ -22,7 +22,7 @@ import com.englesoft.netspeedindicator.MainActivity
  */
 object NotificationHelper {
 
-    const val CHANNEL_ID = "speed_monitor_channel_v4"
+    const val CHANNEL_ID = "speed_monitor_channel_v5"
     const val CHANNEL_NAME = "Speed Monitor"
     const val NOTIFICATION_ID = 1001
     private var cachedTypeface: Typeface? = null
@@ -40,7 +40,7 @@ object NotificationHelper {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_LOW // Minimized/Silent list
+            NotificationManager.IMPORTANCE_DEFAULT // Minimized/Silent list
         ).apply {
             description = "Shows real-time internet speed"
             setShowBadge(false)
@@ -104,7 +104,7 @@ object NotificationHelper {
             .setOnlyAlertOnce(true) // No sound/vibration on updates
             .setSilent(true)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_LOW) // Push to bottom/silent section
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // Push to bottom/silent section
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
         val icon = createStatusIcon(
