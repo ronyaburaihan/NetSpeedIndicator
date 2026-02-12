@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
@@ -14,19 +15,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.presentation.viewmodel.HistoryViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.pow
 
 /**
  * History screen showing daily usage in a table format with a monthly summary card
@@ -39,6 +36,7 @@ fun HistoryScreen(
 ) {
     val dailyUsage by viewModel.dailyUsage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showMenu by remember { mutableStateOf(false) }
 
     // Calculate This Month's Total
     val currentMonthPrefix = remember {
@@ -60,19 +58,44 @@ fun HistoryScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         "Internet Speed Indicator",
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp
-                    ) 
+                    )
                 },
                 actions = {
-                    IconButton(onClick = onSettingsClick) {
+                    IconButton(onClick = { showMenu = !showMenu }) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Menu",
                             tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Settings") },
+                            onClick = {
+                                showMenu = false
+                                onSettingsClick()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Stop Service & Exit") },
+                            onClick = {
+                                showMenu = false
+                                viewModel.exitApp()
+                            }
                         )
                     }
                 },
@@ -94,8 +117,15 @@ fun HistoryScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant,
+                        RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
             ) {
                 // Header
                 TableHeader()
@@ -113,7 +143,10 @@ fun HistoryScreen(
                     ) {
                         items(dailyUsage) { usage ->
                             UsageRow(usage = usage)
-                            Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
+                            Divider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 1.dp
+                            )
                         }
                     }
                 }
@@ -150,9 +183,14 @@ fun TableHeader() {
                 fontSize = 12.sp
             )
         }
-        
+
         // Vertical Divider
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // MOBILE Header
         Box(
@@ -178,7 +216,12 @@ fun TableHeader() {
             }
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // WIFI Header
         Box(
@@ -204,7 +247,12 @@ fun TableHeader() {
             }
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // TOTAL Header
         Box(
@@ -227,7 +275,7 @@ fun TableHeader() {
 @Composable
 fun UsageRow(usage: UsageModel) {
     val dateParts = formatDateParts(usage.date)
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -256,7 +304,12 @@ fun UsageRow(usage: UsageModel) {
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // Mobile Column
         Box(
@@ -272,7 +325,12 @@ fun UsageRow(usage: UsageModel) {
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // WiFi Column
         Box(
@@ -288,7 +346,12 @@ fun UsageRow(usage: UsageModel) {
             )
         }
 
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant))
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
 
         // Total Column
         Box(
@@ -347,7 +410,10 @@ fun MonthSummaryCard(usage: UsageModel) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.CircleShape)
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                androidx.compose.foundation.shape.CircleShape
+                            )
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
@@ -369,7 +435,10 @@ fun MonthSummaryCard(usage: UsageModel) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(MaterialTheme.colorScheme.onSurfaceVariant, androidx.compose.foundation.shape.CircleShape)
+                            .background(
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                androidx.compose.foundation.shape.CircleShape
+                            )
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
