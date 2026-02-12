@@ -1,5 +1,6 @@
 package com.englesoft.netspeedindicator.presentation.service
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
@@ -13,6 +14,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
+import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
 import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.domain.usecase.GetCurrentSpeedUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
@@ -51,8 +53,12 @@ class SpeedMonitorService : Service() {
     @Inject
     lateinit var trafficStateManager: TrafficStateManager
 
+    @Inject
+    lateinit var preferenceManager: PreferenceManager
+
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private var monitoringJob: Job? = null
+    private var showOnLockScreen = true
 
     // Session tracking
     private var sessionRxBytes = 0L
@@ -78,6 +84,13 @@ class SpeedMonitorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Observe lock screen preference
+        serviceScope.launch {
+            preferenceManager.lockScreenNotification.collect {
+                showOnLockScreen = it
+            }
+        }
+
         val notification = NotificationHelper.buildNotification(
             this,
             "0 B/s",
@@ -175,6 +188,7 @@ class SpeedMonitorService : Service() {
                         speedValue,
                         speedUnit
                     )
+                    notification.visibility = if (showOnLockScreen) Notification.VISIBILITY_PUBLIC else Notification.VISIBILITY_SECRET
                     notificationManager.notify(NotificationHelper.NOTIFICATION_ID, notification)
                 }
         }

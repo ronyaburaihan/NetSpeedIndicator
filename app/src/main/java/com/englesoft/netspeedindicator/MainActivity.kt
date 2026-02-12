@@ -17,7 +17,12 @@ import com.englesoft.netspeedindicator.ui.theme.NetSpeedIndicatorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 import android.content.Intent
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
 import com.englesoft.netspeedindicator.presentation.service.SpeedMonitorService
+import javax.inject.Inject
 
 /**
  * Main activity with Hilt integration
@@ -25,6 +30,9 @@ import com.englesoft.netspeedindicator.presentation.service.SpeedMonitorService
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var preferenceManager: PreferenceManager
     
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -50,7 +58,19 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            NetSpeedIndicatorTheme {
+            val appTheme by preferenceManager.appTheme.collectAsState(initial = 0)
+            val dynamicColor by preferenceManager.dynamicColor.collectAsState(initial = true)
+
+            val darkTheme = when (appTheme) {
+                1 -> false // Light
+                2 -> true  // Dark
+                else -> isSystemInDarkTheme() // System
+            }
+
+            NetSpeedIndicatorTheme(
+                darkTheme = darkTheme,
+                dynamicColor = dynamicColor
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
