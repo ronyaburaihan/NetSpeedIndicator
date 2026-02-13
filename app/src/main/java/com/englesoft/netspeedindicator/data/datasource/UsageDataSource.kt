@@ -5,8 +5,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import com.englesoft.netspeedindicator.domain.model.UsageModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -29,30 +29,28 @@ class UsageDataSource @Inject constructor(
     private val connectivityManager: ConnectivityManager by lazy {
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
-    
+
     /**
      * Get usage for a specific date
      * @param date Format: yyyy-MM-dd
-     * @return Pair of (wifiBytes, mobileBytes) where each is Pair(rx, tx)
+     * @return UsageModel or null if permission missing/error
      */
-    fun getUsageForDate(date: String): Pair<Pair<Long, Long>, Pair<Long, Long>> {
+    fun getUsageForDate(date: String): UsageModel? {
         val localDate = LocalDate.parse(date)
         val startOfDay = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
         val endOfDay = localDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
         
-        return getUsageForPeriod(startOfDay.toEpochMilli(), endOfDay.toEpochMilli())
+        return getUsageForPeriod(date, startOfDay.toEpochMilli(), endOfDay.toEpochMilli())
     }
     
     /**
      * Get usage for a time period
-     * @return Pair of (wifiBytes, mobileBytes) where each is Pair(rx, tx)
      */
-    private fun getUsageForPeriod(startMillis: Long, endMillis: Long): Pair<Pair<Long, Long>, Pair<Long, Long>> {
+    private fun getUsageForPeriod(dateStr: String, startMillis: Long, endMillis: Long): UsageModel? {
         val statsManager = networkStatsManager
         
         if (statsManager == null) {
-            // Fallback: return zeros if NetworkStatsManager not available
-            return Pair(Pair(0L, 0L), Pair(0L, 0L))
+            return null
         }
         
         try {
@@ -86,12 +84,18 @@ class UsageDataSource @Inject constructor(
             val mobileRx = mobileSummary?.rxBytes ?: 0L
             val mobileTx = mobileSummary?.txBytes ?: 0L
             
-            return Pair(Pair(wifiRx, wifiTx), Pair(mobileRx, mobileTx))
+            return UsageModel(
+                date = dateStr,
+                wifiRxBytes = wifiRx,
+                wifiTxBytes = wifiTx,
+                mobileRxBytes = mobileRx,
+                mobileTxBytes = mobileTx
+            )
             
         } catch (e: Exception) {
             // Permission not granted or other error
             e.printStackTrace()
-            return Pair(Pair(0L, 0L), Pair(0L, 0L))
+            return null
         }
     }
     
