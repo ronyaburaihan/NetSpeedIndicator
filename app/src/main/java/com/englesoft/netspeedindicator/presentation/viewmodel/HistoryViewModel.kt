@@ -40,10 +40,17 @@ class HistoryViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _selectedMonthIndex = MutableStateFlow(0)
+    val selectedMonthIndex: StateFlow<Int> = _selectedMonthIndex.asStateFlow()
+
     init {
-        loadDailyUsage()
-        loadMonthlyUsage()
+        loadDailyUsage(0)
         observeRealtimeUsage()
+    }
+
+    fun selectMonth(index: Int) {
+        _selectedMonthIndex.value = index
+        loadDailyUsage(index)
     }
 
     fun stopService() {
@@ -60,8 +67,8 @@ class HistoryViewModel @Inject constructor(
     private fun observeRealtimeUsage() {
         viewModelScope.launch {
             trafficStateManager.dailyUsage.collect { liveUsage ->
-                if (liveUsage != null) {
-                    // Update the "Today" entry in the current list
+                if (liveUsage != null && _selectedMonthIndex.value == 0) {
+                    // Update the "Today" entry in the current list ONLY if viewing Current Month
                     val currentList = _dailyUsage.value.toMutableList()
                     val todayStr = liveUsage.date
 
@@ -79,60 +86,60 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    fun loadDailyUsage(days: Int = 31) {
+    fun loadDailyUsage(monthOffset: Int = 0) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Fetch existing usage from DB
-                val dbUsageList = getDailyUsageUseCase.getLastNDays(days)
+                // Calculate target month
+                val targetMonth = java.time.YearMonth.now().minusMonths(monthOffset.toLong())
+                val yearMonthStr = targetMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"))
+                
+                // Fetch usage for that month
+                val dbUsageList = getMonthlyUsageUseCase.getByMonth(yearMonthStr)
                 val dbUsageMap = dbUsageList.associateBy { it.date }
 
-                // Generate full list of dates for the last N days
+                // Generate full list of dates for the month
                 val fullList = mutableListOf<UsageModel>()
-                val today = LocalDate.now()
+                val daysInMonth = targetMonth.lengthOfMonth()
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-                for (i in 0 until days) {
-                    val date = today.minusDays(i.toLong())
+                // Iterate from last day to first day (descending)
+                // Use current day if in current month to avoid future dates? 
+                // UI shows full month usually, but maybe restrict to "today" if current month?
+                // The requirement says "exact same as given ui", usually history shows all days or up to today.
+                // Let's show all days of the month for consistency, or up to today for current month.
+                
+                val lastDayToShow = if (monthOffset == 0) {
+                    LocalDate.now().dayOfMonth
+                } else {
+                    daysInMonth
+                }
+
+                for (day in lastDayToShow downTo 1) {
+                    val date = targetMonth.atDay(day)
                     val dateStr = date.format(formatter)
 
-                    // Use existing data or create zero-usage model
                     val usage = dbUsageMap[dateStr] ?: UsageModel(
                         date = dateStr,
-                        wifiRxBytes = 0,
-                        wifiTxBytes = 0,
-                        mobileRxBytes = 0,
-                        mobileTxBytes = 0
+                        wifiRxBytes = 0, wifiTxBytes = 0, mobileRxBytes = 0, mobileTxBytes = 0
                     )
                     fullList.add(usage)
                 }
 
                 _dailyUsage.value = fullList
 
-                // Immediately check if we have a fresher value from Manager (for Today)
-                val liveUsage = trafficStateManager.dailyUsage.value
-                if (liveUsage != null) {
-                    val currentList = fullList.toMutableList()
-                    val index = currentList.indexOfFirst { it.date == liveUsage.date }
-                    if (index != -1) {
-                        currentList[index] = liveUsage
-                        _dailyUsage.value = currentList
+                // Only sync realtime for current month
+                if (monthOffset == 0) {
+                    val liveUsage = trafficStateManager.dailyUsage.value
+                    if (liveUsage != null) {
+                        val currentList = fullList.toMutableList()
+                        val index = currentList.indexOfFirst { it.date == liveUsage.date }
+                        if (index != -1) {
+                            currentList[index] = liveUsage
+                            _dailyUsage.value = currentList
+                        }
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun loadMonthlyUsage() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val usage = getMonthlyUsageUseCase.getCurrentMonth()
-                _monthlyUsage.value = usage
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

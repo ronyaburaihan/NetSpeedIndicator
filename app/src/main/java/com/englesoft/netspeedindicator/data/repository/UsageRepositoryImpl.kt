@@ -81,6 +81,21 @@ class UsageRepositoryImpl @Inject constructor(
     }
     
     override suspend fun getMonthlyUsage(yearMonth: String): List<UsageModel> {
+        // Sync monthly data with system
+        val yearMonthObj = java.time.YearMonth.parse(yearMonth)
+        val startDate = yearMonthObj.atDay(1)
+        val endDate = yearMonthObj.atEndOfMonth().coerceAtMost(LocalDate.now()) // Don't sync future dates
+        
+        var current = startDate
+        while (!current.isAfter(endDate)) {
+            val dateStr = current.format(dateFormatter)
+            val systemUsage = usageDataSource.getUsageForDate(dateStr)
+            if (systemUsage != null) {
+                saveUsage(systemUsage)
+            }
+            current = current.plusDays(1)
+        }
+        
         return usageDao.getByMonth(yearMonth).map { it.toDomain() }
     }
 }

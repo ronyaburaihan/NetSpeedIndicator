@@ -2,8 +2,10 @@ package com.englesoft.netspeedindicator.presentation.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,10 +14,15 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.DonutLarge
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,9 +32,11 @@ import com.englesoft.netspeedindicator.presentation.viewmodel.HistoryViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.englesoft.netspeedindicator.R
 
 /**
  * History screen showing daily usage in a table format with a monthly summary card
+ * Uses Material3 Theme colors for dynamic light/dark mode support
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,22 +46,40 @@ fun HistoryScreen(
 ) {
     val dailyUsage by viewModel.dailyUsage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val selectedMonthIndex by viewModel.selectedMonthIndex.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
 
-    // Calculate This Month's Total
-    val currentMonthPrefix = remember {
-        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+    // Calculate Target Month Prefix based on selection
+    val targetMonthPrefix = remember(selectedMonthIndex) {
+        java.time.YearMonth.now().minusMonths(selectedMonthIndex.toLong())
+            .format(DateTimeFormatter.ofPattern("yyyy-MM"))
     }
 
-    val thisMonthUsage = remember(dailyUsage) {
-        val monthUsages = dailyUsage.filter { it.date.startsWith(currentMonthPrefix) }
-        UsageModel(
-            date = "This Month",
+    val (thisMonthUsage, dateRangeStr) = remember(dailyUsage, targetMonthPrefix) {
+        val monthUsages = dailyUsage.filter { it.date.startsWith(targetMonthPrefix) }
+
+        val total = UsageModel(
+            date = "Total",
             wifiRxBytes = monthUsages.sumOf { it.wifiRxBytes },
             wifiTxBytes = monthUsages.sumOf { it.wifiTxBytes },
             mobileRxBytes = monthUsages.sumOf { it.mobileRxBytes },
             mobileTxBytes = monthUsages.sumOf { it.mobileTxBytes }
         )
+
+        // Calculate date range string e.g. "Oct 01 - Oct 31"
+        val rangeStr = try {
+            val yearMonth = java.time.YearMonth.parse(targetMonthPrefix)
+            val startOfMonth = yearMonth.atDay(1)
+            val endOfMonth =
+                if (selectedMonthIndex == 0) LocalDate.now() else yearMonth.atEndOfMonth()
+
+            val formatter = DateTimeFormatter.ofPattern("MMM dd", Locale.US)
+            "${startOfMonth.format(formatter)} - ${endOfMonth.format(formatter)}"
+        } catch (e: Exception) {
+            ""
+        }
+
+        Pair(total, rangeStr)
     }
 
     Scaffold(
@@ -61,9 +88,10 @@ fun HistoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Internet Speed Indicator",
+                        text = stringResource(R.string.app_name),
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 actions = {
@@ -71,7 +99,7 @@ fun HistoryScreen(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Menu",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                     DropdownMenu(
@@ -117,8 +145,16 @@ fun HistoryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
+            // Month Selector Chips
+            MonthSelector(
+                selectedIndex = selectedMonthIndex,
+                onSelect = { viewModel.selectMonth(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Table
             Column(
                 modifier = Modifier
@@ -127,11 +163,11 @@ fun HistoryScreen(
                     .border(
                         1.dp,
                         MaterialTheme.colorScheme.outlineVariant,
-                        RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                        RoundedCornerShape(8.dp)
                     )
                     .background(
                         MaterialTheme.colorScheme.surface,
-                        RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                        RoundedCornerShape(8.dp)
                     )
             ) {
                 // Header
@@ -162,7 +198,108 @@ fun HistoryScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Bottom Summary Card
-            MonthSummaryCard(usage = thisMonthUsage)
+            MonthSummaryCard(
+                usage = thisMonthUsage,
+                dateRange = dateRangeStr,
+                title = if (selectedMonthIndex == 0) "THIS MONTH TOTAL" else "LAST MONTH TOTAL"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun MonthSelector(
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        item {
+            // This Month (Index 0)
+            MonthChip(
+                label = "This Month",
+                isSelected = selectedIndex == 0,
+                onClick = { onSelect(0) },
+                icon = Icons.Outlined.CalendarMonth
+            )
+        }
+        item {
+            // Last Month (Index 1)
+            MonthChip(
+                label = "Last Month",
+                isSelected = selectedIndex == 1,
+                onClick = { onSelect(1) }
+            )
+        }
+        item {
+            // Last 3 Months (Index 3 - Using 3 as identifier for 3 months)
+            // Note: ViewModel logic needs update to handle index 3 if implemented fully.
+            // For now UI only.
+            MonthChip(
+                label = "Last 3 Months",
+                isSelected = selectedIndex == 3,
+                onClick = { onSelect(3) }
+            )
+        }
+    }
+}
+
+@Composable
+fun MonthChip(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector? = null
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface, // Adjust colors as per image?
+        // Image shows: Selected = Blue Outline + Blue Text + Blue Icon. Unselected = Grey BG + White Text.
+        // Wait, Image shows: 
+        // Selected "This Month": Blue Outline, Transparent/Dark BG, Blue Text.
+        // Unselected "Last Month": Dark Grey BG, White Text.
+
+        border = if (isSelected) androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.primary
+        ) else null,
+        modifier = Modifier.height(36.dp)
+    ) {
+        // Correct coloring logic based on image
+        val backgroundColor =
+            if (isSelected) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant
+        val contentColor =
+            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+        Row(
+            modifier = Modifier
+                .background(backgroundColor)
+                .padding(horizontal = 12.dp, vertical = 0.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+            Text(
+                text = label,
+                color = contentColor,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
@@ -172,8 +309,11 @@ fun TableHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .height(50.dp)
+            .background(
+                MaterialTheme.colorScheme.surface,
+                RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+            )
     ) {
         // DATE Header (Primary Background)
         Box(
@@ -187,7 +327,7 @@ fun TableHeader() {
                 text = "DATE",
                 color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
+                fontSize = 13.sp
             )
         }
 
@@ -202,7 +342,7 @@ fun TableHeader() {
         // MOBILE Header
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -233,7 +373,7 @@ fun TableHeader() {
         // WIFI Header
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -264,7 +404,7 @@ fun TableHeader() {
         // TOTAL Header
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -286,7 +426,7 @@ fun UsageRow(usage: UsageModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp) // Taller rows as per design
+            .height(65.dp) // Taller rows
             .background(MaterialTheme.colorScheme.surface)
     ) {
         // Date Column
@@ -306,7 +446,7 @@ fun UsageRow(usage: UsageModel) {
             Text(
                 text = dateParts.second, // 24
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -321,15 +461,25 @@ fun UsageRow(usage: UsageModel) {
         // Mobile Column
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = formatData(usage.mobileTotalBytes),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp
-            )
+            val (value, unit) = formatDataParts(usage.mobileTotalBytes)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = value,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = unit,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
         }
 
         Box(
@@ -342,15 +492,25 @@ fun UsageRow(usage: UsageModel) {
         // WiFi Column
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = formatData(usage.wifiTotalBytes),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp
-            )
+            val (value, unit) = formatDataParts(usage.wifiTotalBytes)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = value,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = unit,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
         }
 
         Box(
@@ -363,105 +523,164 @@ fun UsageRow(usage: UsageModel) {
         // Total Column
         Box(
             modifier = Modifier
-                .weight(1.2f)
+                .weight(1.3f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = formatData(usage.totalBytes),
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
-            )
+            val (value, unit) = formatDataParts(usage.totalBytes)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = value,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = unit,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun MonthSummaryCard(usage: UsageModel) {
+fun MonthSummaryCard(usage: UsageModel, dateRange: String, title: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            // Left Side: Total
-            Column {
-                Text(
-                    text = "This Month's Total",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formatData(usage.totalBytes),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            // Right Side: Breakdown
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            // Header Row: Title + Date Range
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Mobile Row
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                androidx.compose.foundation.shape.CircleShape
-                            )
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Mobile",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = formatData(usage.mobileTotalBytes),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                Text(
+                    text = title,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.sp
+                )
 
-                // WiFi Row
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                                androidx.compose.foundation.shape.CircleShape
-                            )
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                // Date Chip
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(4.dp)
+                ) {
                     Text(
-                        text = "WiFi",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = formatData(usage.wifiTotalBytes),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        text = dateRange,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Stats Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Mobile
+                SummaryStatItem(
+                    label = "Mobile",
+                    value = usage.mobileTotalBytes,
+                    icon = Icons.Default.SignalCellularAlt,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(40.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+
+                // Wi-Fi
+                SummaryStatItem(
+                    label = "Wi-Fi",
+                    value = usage.wifiTotalBytes,
+                    icon = Icons.Default.Wifi,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(40.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+
+                // Total
+                SummaryStatItem(
+                    label = "Total",
+                    value = usage.totalBytes,
+                    icon = Icons.Outlined.DonutLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SummaryStatItem(
+    label: String,
+    value: Long,
+    icon: ImageVector,
+    color: Color
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+
+        val (valStr, unitStr) = formatDataParts(value)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = valStr,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Text(
+                text = unitStr,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 3.dp)
+            )
         }
     }
 }
@@ -479,16 +698,25 @@ fun formatDateParts(dateString: String): Pair<String, String> {
     }
 }
 
-// Helper to format data (e.g. "1.65 GB" or "450 MB")
-fun formatData(bytes: Long): String {
-    if (bytes == 0L) return "0 MB"
+// Helper to format data into Value and Unit (e.g. "1.65" and "GB")
+fun formatDataParts(bytes: Long): Pair<String, String> {
+    if (bytes == 0L) return Pair("0", "MB")
 
     val gb = bytes / (1024.0 * 1024.0 * 1024.0)
     if (gb >= 1.0) {
-        return String.format(Locale.US, "%.2f GB", gb)
+        return Pair(String.format(Locale.US, "%.2f", gb), "GB")
     }
 
     val mb = bytes / (1024.0 * 1024.0)
-    return String.format(Locale.US, "%.0f MB", mb)
+    if (mb >= 10.0) {
+        return Pair(String.format(Locale.US, "%.0f", mb), "MB")
+    }
+    return Pair(String.format(Locale.US, "%.1f", mb), "MB")
+}
+
+// Keeping original formatData for backward compatibility if needed
+fun formatData(bytes: Long): String {
+    val (v, u) = formatDataParts(bytes)
+    return "$v $u"
 }
 
