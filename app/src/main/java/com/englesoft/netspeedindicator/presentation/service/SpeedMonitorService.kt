@@ -91,7 +91,7 @@ class SpeedMonitorService : Service() {
                 showOnLockScreen = it
             }
         }
-        
+
         // Observe upload speed preference
         serviceScope.launch {
             preferenceManager.showUploadSpeed.collect {
@@ -176,7 +176,8 @@ class SpeedMonitorService : Service() {
 
                     // 5. Format strings for Notification
                     val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
-                    val uploadSpeedStr = if (showUploadSpeed) FormatUtils.formatSpeed(speed.uploadBytesPerSecond) else null
+                    val uploadSpeedStr =
+                        if (showUploadSpeed) FormatUtils.formatSpeed(speed.uploadBytesPerSecond) else null
 
                     val mobileUsageTotal = liveUsage.mobileRxBytes + liveUsage.mobileTxBytes
                     val wifiUsageTotal = liveUsage.wifiRxBytes + liveUsage.wifiTxBytes
@@ -200,7 +201,8 @@ class SpeedMonitorService : Service() {
                         speedValue,
                         speedUnit
                     )
-                    notification.visibility = if (showOnLockScreen) Notification.VISIBILITY_PUBLIC else Notification.VISIBILITY_SECRET
+                    notification.visibility =
+                        if (showOnLockScreen) Notification.VISIBILITY_PUBLIC else Notification.VISIBILITY_SECRET
                     notificationManager.notify(NotificationHelper.NOTIFICATION_ID, notification)
                 }
         }
@@ -343,9 +345,4 @@ class SpeedMonitorService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    companion object {
-        const val ACTION_START = "com.englesoft.netspeedindicator.START_MONITORING"
-        const val ACTION_STOP = "com.englesoft.netspeedindicator.STOP_MONITORING"
-    }
 }
