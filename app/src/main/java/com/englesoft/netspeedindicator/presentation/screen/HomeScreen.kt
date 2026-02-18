@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.ui.screen
+package com.englesoft.netspeedindicator.presentation.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.presentation.viewmodel.HomeViewModel
-import com.englesoft.netspeedindicator.util.FormatUtils
+import com.englesoft.netspeedindicator.core.util.FormatUtils
 
 /**
  * Home screen showing real-time speed and today's usage
@@ -24,7 +24,7 @@ fun HomeScreen(
     val currentSpeed by viewModel.currentSpeed.collectAsState()
     val todayUsage by viewModel.todayUsage.collectAsState()
     val isServiceRunning by viewModel.isServiceRunning.collectAsState()
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,16 +33,16 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         // Title
         Text(
             text = "Net Speed Monitor",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Speed Cards
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -55,7 +55,7 @@ fun HomeScreen(
                 speed = FormatUtils.formatSpeed(currentSpeed.downloadBytesPerSecond),
                 icon = "↓"
             )
-            
+
             // Upload Speed
             SpeedCard(
                 modifier = Modifier.weight(1f),
@@ -64,9 +64,9 @@ fun HomeScreen(
                 icon = "↑"
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Today's Usage
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -85,18 +85,18 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
                     text = FormatUtils.formatBytes(todayUsage?.totalBytes ?: 0L),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -105,7 +105,7 @@ fun HomeScreen(
                         label = "WiFi",
                         value = FormatUtils.formatBytes(todayUsage?.wifiTotalBytes ?: 0L)
                     )
-                    
+
                     UsageDetail(
                         label = "Mobile",
                         value = FormatUtils.formatBytes(todayUsage?.mobileTotalBytes ?: 0L)
@@ -113,9 +113,9 @@ fun HomeScreen(
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.weight(1f))
-        
+
         // Control Button
         Button(
             onClick = {
@@ -141,7 +141,7 @@ fun HomeScreen(
                 style = MaterialTheme.typography.titleMedium
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -169,17 +169,17 @@ fun SpeedCard(
                 text = icon,
                 fontSize = 32.sp
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            
+
             Spacer(modifier = Modifier.height(4.dp))
-            
+
             Text(
                 text = speed,
                 style = MaterialTheme.typography.titleLarge,
@@ -203,7 +203,7 @@ fun UsageDetail(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
         )
-        
+
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,

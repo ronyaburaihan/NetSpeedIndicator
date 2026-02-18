@@ -1,10 +1,10 @@
-package com.englesoft.netspeedindicator.presentation.receiver
+package com.englesoft.netspeedindicator.core.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.englesoft.netspeedindicator.presentation.service.SpeedMonitorService
+import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

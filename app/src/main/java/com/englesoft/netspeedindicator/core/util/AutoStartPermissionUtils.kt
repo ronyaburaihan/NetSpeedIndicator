@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.util
+package com.englesoft.netspeedindicator.core.util
 
 import android.content.ComponentName
 import android.content.Context

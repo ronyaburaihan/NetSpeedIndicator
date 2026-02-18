@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.di
+package com.englesoft.netspeedindicator.core.di
 
 import com.englesoft.netspeedindicator.data.repository.SpeedRepositoryImpl
 import com.englesoft.netspeedindicator.data.repository.UsageRepositoryImpl

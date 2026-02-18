@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.ui.screen
+package com.englesoft.netspeedindicator.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

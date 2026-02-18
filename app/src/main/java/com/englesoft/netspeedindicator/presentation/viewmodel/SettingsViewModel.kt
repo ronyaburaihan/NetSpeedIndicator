@@ -7,8 +7,8 @@ import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
-import com.englesoft.netspeedindicator.util.AutoStartPermissionUtils
-import com.englesoft.netspeedindicator.util.PermissionUtils
+import com.englesoft.netspeedindicator.core.util.AutoStartPermissionUtils
+import com.englesoft.netspeedindicator.core.util.PermissionUtils
 import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel

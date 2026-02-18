@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator
+package com.englesoft.netspeedindicator.core
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -12,16 +12,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.englesoft.netspeedindicator.presentation.ui.navigation.NavGraph
-import com.englesoft.netspeedindicator.ui.theme.NetSpeedIndicatorTheme
+import com.englesoft.netspeedindicator.presentation.navigation.NavGraph
+import com.englesoft.netspeedindicator.presentation.theme.NetSpeedIndicatorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 import android.content.Intent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
-import com.englesoft.netspeedindicator.presentation.service.SpeedMonitorService
 import javax.inject.Inject
 
 /**

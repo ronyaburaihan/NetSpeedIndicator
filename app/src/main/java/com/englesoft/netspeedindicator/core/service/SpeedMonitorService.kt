@@ -1,7 +1,9 @@
-package com.englesoft.netspeedindicator.presentation.service
+package com.englesoft.netspeedindicator.core.service
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -12,6 +14,7 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import androidx.core.app.ServiceCompat
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
@@ -19,8 +22,8 @@ import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.domain.usecase.GetCurrentSpeedUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.SaveUsageUseCase
-import com.englesoft.netspeedindicator.util.FormatUtils
-import com.englesoft.netspeedindicator.util.NotificationHelper
+import com.englesoft.netspeedindicator.core.util.FormatUtils
+import com.englesoft.netspeedindicator.core.util.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,8 +83,8 @@ class SpeedMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         NotificationHelper.createNotificationChannel(this)
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -265,7 +268,7 @@ class SpeedMonitorService : Service() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // Android 12+ - Use ConnectivityManager
                     val connectivityManager =
-                        applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        applicationContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
                     val network = connectivityManager.activeNetwork
                     val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
 
@@ -284,7 +287,7 @@ class SpeedMonitorService : Service() {
                     // Below Android 12 - Use WifiManager
                     @Suppress("DEPRECATION")
                     val wifiManager =
-                        applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                        applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
 
                     @Suppress("DEPRECATION")
                     val info = wifiManager.connectionInfo
@@ -315,17 +318,17 @@ class SpeedMonitorService : Service() {
             Intent(applicationContext, SpeedMonitorService::class.java).also {
                 it.setPackage(packageName)
             }
-        val restartServicePendingIntent = android.app.PendingIntent.getService(
+        val restartServicePendingIntent = PendingIntent.getService(
             this,
             1,
             restartServiceIntent,
-            android.app.PendingIntent.FLAG_ONE_SHOT or android.app.PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
         val alarmService =
-            applicationContext.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+            applicationContext.getSystemService(ALARM_SERVICE) as AlarmManager
         alarmService.set(
-            android.app.AlarmManager.ELAPSED_REALTIME,
-            android.os.SystemClock.elapsedRealtime() + 1000,
+            AlarmManager.ELAPSED_REALTIME,
+            SystemClock.elapsedRealtime() + 1000,
             restartServicePendingIntent
         )
         super.onTaskRemoved(rootIntent)

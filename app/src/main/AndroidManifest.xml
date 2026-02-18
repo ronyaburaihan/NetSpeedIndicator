@@ -27,7 +27,7 @@
         
         <!-- Main Activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".core.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.NetSpeedIndicator">
@@ -39,14 +39,14 @@
         
         <!-- Speed Monitor Foreground Service -->
         <service
-            android:name=".presentation.service.SpeedMonitorService"
+            android:name=".core.service.SpeedMonitorService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
             
         <!-- Boot Receiver -->
         <receiver
-            android:name=".presentation.receiver.BootCompletedReceiver"
+            android:name=".core.receiver.BootCompletedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

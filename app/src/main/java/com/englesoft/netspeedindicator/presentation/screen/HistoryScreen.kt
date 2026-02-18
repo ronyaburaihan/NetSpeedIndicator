@@ -1,5 +1,6 @@
-package com.englesoft.netspeedindicator.presentation.ui.screen
+package com.englesoft.netspeedindicator.presentation.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +61,7 @@ import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.presentation.viewmodel.HistoryViewModel
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -80,7 +82,7 @@ fun HistoryScreen(
 
     // Calculate Target Month Prefix based on selection
     val targetMonthPrefix = remember(selectedMonthIndex) {
-        java.time.YearMonth.now().minusMonths(selectedMonthIndex.toLong())
+        YearMonth.now().minusMonths(selectedMonthIndex.toLong())
             .format(DateTimeFormatter.ofPattern("yyyy-MM"))
     }
 
@@ -97,7 +99,7 @@ fun HistoryScreen(
 
         // Calculate date range string e.g. "Oct 01 - Oct 31"
         val rangeStr = try {
-            val yearMonth = java.time.YearMonth.parse(targetMonthPrefix)
+            val yearMonth = YearMonth.parse(targetMonthPrefix)
             val startOfMonth = yearMonth.atDay(1)
             val endOfMonth =
                 if (selectedMonthIndex == 0) LocalDate.now() else yearMonth.atEndOfMonth()
@@ -296,7 +298,7 @@ fun MonthChip(
         // Selected "This Month": Blue Outline, Transparent/Dark BG, Blue Text.
         // Unselected "Last Month": Dark Grey BG, White Text.
 
-        border = if (isSelected) androidx.compose.foundation.BorderStroke(
+        border = if (isSelected) BorderStroke(
             1.dp,
             MaterialTheme.colorScheme.primary
         ) else null,

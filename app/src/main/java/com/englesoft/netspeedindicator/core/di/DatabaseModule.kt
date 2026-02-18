@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.di
+package com.englesoft.netspeedindicator.core.di
 
 import android.content.Context
 import androidx.room.Room

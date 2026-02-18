@@ -8,12 +8,11 @@ import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetMonthlyUsageUseCase
-import com.englesoft.netspeedindicator.presentation.service.SpeedMonitorService
+import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.ui.navigation
+package com.englesoft.netspeedindicator.presentation.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.englesoft.netspeedindicator.presentation.ui.screen.HistoryScreen
-import com.englesoft.netspeedindicator.presentation.ui.screen.HomeScreen
-import com.englesoft.netspeedindicator.presentation.ui.screen.SettingsScreen
+import com.englesoft.netspeedindicator.presentation.screen.HistoryScreen
+import com.englesoft.netspeedindicator.presentation.screen.HomeScreen
+import com.englesoft.netspeedindicator.presentation.screen.SettingsScreen
 
 /**
  * Navigation routes

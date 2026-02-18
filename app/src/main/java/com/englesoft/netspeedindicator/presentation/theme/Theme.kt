@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.ui.theme
+package com.englesoft.netspeedindicator.presentation.theme
 
 import android.app.Activity
 import android.os.Build
