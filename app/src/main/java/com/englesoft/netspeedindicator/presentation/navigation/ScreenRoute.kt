@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 sealed class ScreenRoute {
 
     @Serializable
+    object Onboarding : ScreenRoute()
+
+    @Serializable
     object Main : ScreenRoute()
 
     @Serializable

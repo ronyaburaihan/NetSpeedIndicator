@@ -14,7 +14,7 @@ import android.graphics.Typeface
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
-import com.englesoft.netspeedindicator.core.MainActivity
+import com.englesoft.netspeedindicator.presentation.app.MainActivity
 
 /**
  * Helper class for creating and managing notifications

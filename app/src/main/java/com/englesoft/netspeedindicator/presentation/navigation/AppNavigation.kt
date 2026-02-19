@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.englesoft.netspeedindicator.presentation.screen.main.history.HistoryScreen
+import com.englesoft.netspeedindicator.presentation.screen.main.screen.MainScreen
 import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsScreen
+import com.englesoft.netspeedindicator.presentation.screen.onboarding.OnboardingScreen
 import com.englesoft.netspeedindicator.presentation.util.LocalNavController
 import com.englesoft.netspeedindicator.presentation.util.LocalSnackBarHostState
 import com.englesoft.netspeedindicator.presentation.util.appNavComposable
@@ -46,9 +48,9 @@ fun AppNavigation(
             LocalNavController provides navController
         ) {
             AppNavHost(
+                modifier = Modifier.padding(it),
                 navController = navController,
-                initialRoute = initialRoute,
-                onScreenNavigate = onScreenNavigate
+                initialRoute = initialRoute
             )
         }
     }
@@ -56,9 +58,9 @@ fun AppNavigation(
 
 @Composable
 fun AppNavHost(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
-    initialRoute: ScreenRoute,
-    onScreenNavigate: (String) -> Unit
+    initialRoute: ScreenRoute
 ) {
     NavHost(
         navController = navController,
@@ -74,7 +76,9 @@ fun AppNavHost(
             SettingsScreen()
         }
         appNavComposable<ScreenRoute.History> {
-            HistoryScreen()
+            HistoryScreen(
+                onSettingsClick = {}
+            )
         }
     }
 }
