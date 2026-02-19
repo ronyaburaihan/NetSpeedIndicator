@@ -16,9 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.englesoft.netspeedindicator.presentation.screen.main.history.HistoryScreen
 import com.englesoft.netspeedindicator.presentation.screen.main.screen.MainScreen
-import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsScreen
 import com.englesoft.netspeedindicator.presentation.screen.onboarding.OnboardingScreen
 import com.englesoft.netspeedindicator.presentation.util.LocalNavController
 import com.englesoft.netspeedindicator.presentation.util.LocalSnackBarHostState
@@ -71,14 +69,6 @@ fun AppNavHost(
         }
         appNavComposable<ScreenRoute.Onboarding> {
             OnboardingScreen()
-        }
-        appNavComposable<ScreenRoute.Settings> {
-            SettingsScreen()
-        }
-        appNavComposable<ScreenRoute.History> {
-            HistoryScreen(
-                onSettingsClick = {}
-            )
         }
     }
 }
