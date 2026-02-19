@@ -1,20 +1,22 @@
-package com.englesoft.netspeedindicator.presentation.viewmodel
+package com.englesoft.netspeedindicator.presentation.screen.main.history
 
 import android.app.Application
 import android.content.Intent
+import android.os.Process
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.domain.model.UsageModel
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetMonthlyUsageUseCase
-import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -60,7 +62,7 @@ class HistoryViewModel @Inject constructor(
     fun exitApp() {
         stopService()
         // Close the application process
-        android.os.Process.killProcess(android.os.Process.myPid())
+        Process.killProcess(Process.myPid())
     }
 
     private fun observeRealtimeUsage() {
@@ -90,9 +92,9 @@ class HistoryViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 // Calculate target month
-                val targetMonth = java.time.YearMonth.now().minusMonths(monthOffset.toLong())
+                val targetMonth = YearMonth.now().minusMonths(monthOffset.toLong())
                 val yearMonthStr = targetMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"))
-                
+
                 // Fetch usage for that month
                 val dbUsageList = getMonthlyUsageUseCase.getByMonth(yearMonthStr)
                 val dbUsageMap = dbUsageList.associateBy { it.date }
@@ -103,11 +105,11 @@ class HistoryViewModel @Inject constructor(
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
                 // Iterate from last day to first day (descending)
-                // Use current day if in current month to avoid future dates? 
+                // Use current day if in current month to avoid future dates?
                 // UI shows full month usually, but maybe restrict to "today" if current month?
                 // The requirement says "exact same as given ui", usually history shows all days or up to today.
                 // Let's show all days of the month for consistency, or up to today for current month.
-                
+
                 val lastDayToShow = if (monthOffset == 0) {
                     LocalDate.now().dayOfMonth
                 } else {

@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.screen
+package com.englesoft.netspeedindicator.presentation.screen.main.history
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.domain.model.UsageModel
-import com.englesoft.netspeedindicator.presentation.viewmodel.HistoryViewModel
+import com.englesoft.netspeedindicator.presentation.screen.main.history.HistoryViewModel
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter

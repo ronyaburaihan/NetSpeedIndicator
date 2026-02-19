@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.screen
+package com.englesoft.netspeedindicator.presentation.screen.main.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.englesoft.netspeedindicator.presentation.viewmodel.HomeViewModel
+import com.englesoft.netspeedindicator.presentation.screen.main.home.HomeViewModel
 import com.englesoft.netspeedindicator.core.util.FormatUtils
 
 /**

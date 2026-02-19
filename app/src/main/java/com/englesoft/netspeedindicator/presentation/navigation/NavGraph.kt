@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.englesoft.netspeedindicator.presentation.screen.HistoryScreen
-import com.englesoft.netspeedindicator.presentation.screen.HomeScreen
-import com.englesoft.netspeedindicator.presentation.screen.SettingsScreen
+import com.englesoft.netspeedindicator.presentation.screen.main.history.HistoryScreen
+import com.englesoft.netspeedindicator.presentation.screen.main.home.HomeScreen
+import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsScreen
 
 /**
  * Navigation routes

@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.screen
+package com.englesoft.netspeedindicator.presentation.screen.main.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,7 +25,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.englesoft.netspeedindicator.presentation.viewmodel.SettingsViewModel
+import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsViewModel
 
 /**
  * Settings screen for app configuration
