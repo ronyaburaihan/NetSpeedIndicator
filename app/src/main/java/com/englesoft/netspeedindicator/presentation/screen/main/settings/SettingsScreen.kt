@@ -19,12 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.englesoft.netspeedindicator.R
+import com.englesoft.netspeedindicator.presentation.component.AppTopBar
 import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsViewModel
 
 /**
@@ -56,8 +59,9 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
+            AppTopBar(
+                title = stringResource(R.string.settings),
+                subTitle = stringResource(R.string.preferences_and_customization)
             )
         }
     ) { paddingValues ->

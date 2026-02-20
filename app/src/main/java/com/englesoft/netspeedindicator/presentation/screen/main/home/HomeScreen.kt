@@ -18,11 +18,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.core.util.FormatUtils
+import com.englesoft.netspeedindicator.presentation.component.AppTopBar
 
 @Composable
 fun HomeScreen(
@@ -130,7 +133,14 @@ private fun HomeScreenContent(
     uiState: HomeUiState
 ) {
     Scaffold(
-        topBar = {}
+        topBar = {
+            AppTopBar(
+                title = stringResource(R.string.dashboard),
+                subTitle = stringResource(R.string.real_time_monitor),
+                showStopIcon = true,
+                onStopClick = {  }
+            )
+        },
     ) {
         Column(
             modifier = Modifier

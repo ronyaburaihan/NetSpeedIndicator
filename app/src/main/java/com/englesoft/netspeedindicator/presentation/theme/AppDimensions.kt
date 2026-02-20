@@ -16,7 +16,7 @@ data class AppDimensions(
     val mediumIconSize: Dp = 23.dp,
     val vectorImageSize: Dp = 28.dp,
     val bottomBarHeight: Dp = 55.dp,
-    val horizontalPadding: Dp = 16.dp,
+    val horizontalPadding: Dp = 24.dp,
     val verticalPadding: Dp = 16.dp,
     val spaceBetween: Dp = 10.dp,
     val inputHeight: Dp = 54.dp,

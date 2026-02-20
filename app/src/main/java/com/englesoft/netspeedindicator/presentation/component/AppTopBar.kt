@@ -21,13 +21,16 @@ fun AppTopBar(
     modifier: Modifier = Modifier,
     title: String = "Dashboard",
     subTitle: String = "Real-time Monitor",
-    showStopIcon: Boolean = true,
+    showStopIcon: Boolean = false,
     onStopClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = dimens.horizontalPadding),
+            .padding(
+                horizontal = dimens.horizontalPadding,
+                vertical = dimens.verticalPadding
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
