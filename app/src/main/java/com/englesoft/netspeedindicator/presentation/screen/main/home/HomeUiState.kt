@@ -5,8 +5,8 @@ import com.englesoft.netspeedindicator.domain.model.UsageInfo
 
 data class HomeUiState(
     val isServiceRunning: Boolean = false,
-    val currentSpeed: SpeedInfo? = null,
-    val todayUsage: UsageInfo? = null,
+    val currentSpeed: SpeedInfo = SpeedInfo(),
+    val todayUsage: UsageInfo = UsageInfo(),
     val isLoading: Boolean = false,
     val message: String? = null,
 )

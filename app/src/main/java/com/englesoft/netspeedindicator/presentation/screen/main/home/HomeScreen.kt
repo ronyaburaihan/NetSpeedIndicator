@@ -28,9 +28,11 @@ import com.englesoft.netspeedindicator.core.util.FormatUtils
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val currentSpeed by viewModel.currentSpeed.collectAsState()
-    val todayUsage by viewModel.todayUsage.collectAsState()
-    val isServiceRunning by viewModel.isServiceRunning.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    HomeScreenContent(
+        uiState = uiState
+    )
 
     Column(
         modifier = Modifier
@@ -59,7 +61,7 @@ fun HomeScreen(
             SpeedCard(
                 modifier = Modifier.weight(1f),
                 label = "Download",
-                speed = FormatUtils.formatSpeed(currentSpeed.downloadBytesPerSecond),
+                speed = FormatUtils.formatSpeed(uiState.currentSpeed.downloadBytesPerSecond),
                 icon = "↓"
             )
 
@@ -67,7 +69,7 @@ fun HomeScreen(
             SpeedCard(
                 modifier = Modifier.weight(1f),
                 label = "Upload",
-                speed = FormatUtils.formatSpeed(currentSpeed.uploadBytesPerSecond),
+                speed = FormatUtils.formatSpeed(uiState.currentSpeed.uploadBytesPerSecond),
                 icon = "↑"
             )
         }
@@ -96,7 +98,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = FormatUtils.formatBytes(todayUsage?.totalBytes ?: 0L),
+                    text = FormatUtils.formatBytes(uiState.todayUsage.totalBytes),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -110,12 +112,12 @@ fun HomeScreen(
                 ) {
                     UsageDetail(
                         label = "WiFi",
-                        value = FormatUtils.formatBytes(todayUsage?.wifiTotalBytes ?: 0L)
+                        value = FormatUtils.formatBytes(uiState.todayUsage.wifiTotalBytes)
                     )
 
                     UsageDetail(
                         label = "Mobile",
-                        value = FormatUtils.formatBytes(todayUsage?.mobileTotalBytes ?: 0L)
+                        value = FormatUtils.formatBytes(uiState.todayUsage.mobileTotalBytes)
                     )
                 }
             }

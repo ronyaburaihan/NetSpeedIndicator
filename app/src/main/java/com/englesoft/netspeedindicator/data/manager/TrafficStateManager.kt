@@ -17,7 +17,7 @@ class TrafficStateManager @Inject constructor() {
     private val _speed = MutableStateFlow(SpeedInfo())
     val speed = _speed.asStateFlow()
 
-    private val _dailyUsage = MutableStateFlow<UsageInfo?>(null)
+    private val _dailyUsage = MutableStateFlow<UsageInfo>(UsageInfo())
     val dailyUsage = _dailyUsage.asStateFlow()
 
     fun updateSpeed(speed: SpeedInfo) {
