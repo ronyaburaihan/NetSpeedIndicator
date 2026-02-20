@@ -7,6 +7,8 @@ data class HomeUiState(
     val isServiceRunning: Boolean = false,
     val currentSpeed: SpeedInfo = SpeedInfo(),
     val todayUsage: UsageInfo = UsageInfo(),
+    val peakSpeed: Long = 0L,
+    val sessionDurationSeconds: Long = 0L,
     val isLoading: Boolean = false,
     val message: String? = null,
 )

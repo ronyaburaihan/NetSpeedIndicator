@@ -7,4 +7,17 @@
     <string name="real_time_monitor">Real-time Monitor</string>
     <string name="data_usage_logs">Data Usage Logs</string>
     <string name="preferences_and_customization">Preferences &amp; Customization</string>
+    <string name="live_session">LIVE SESSION</string>
+    <string name="total_speed">Total Speed</string>
+    <string name="download">Download</string>
+    <string name="upload">Upload</string>
+    <string name="today_s_usage">Today\'s Usage</string>
+    <string name="reset_12_00_am">Reset 12:00 AM</string>
+    <string name="total_usage">Total Usage</string>
+    <string name="active_monitoring">Active Monitoring</string>
+    <string name="today">Today</string>
+    <string name="mobile">Mobile</string>
+    <string name="wifi">WiFi</string>
+    <string name="peak">Peak</string>
+    <string name="time">Time</string>
 </resources>

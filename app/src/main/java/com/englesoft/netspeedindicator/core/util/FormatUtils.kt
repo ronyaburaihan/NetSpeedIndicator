@@ -1,5 +1,6 @@
 package com.englesoft.netspeedindicator.core.util
 
+import kotlin.math.log10
 import kotlin.math.pow
 
 /**
@@ -17,7 +18,7 @@ object FormatUtils {
         if (bytes < 1024) return "$bytes B"
         
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
+        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
         
         val value = bytes / 1024.0.pow(digitGroups.toDouble())
         return String.format("%.1f %s", value, units[digitGroups])
@@ -33,7 +34,7 @@ object FormatUtils {
         if (bytesPerSecond < 1024) return "$bytesPerSecond B/s"
         
         val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
-        val digitGroups = (Math.log10(bytesPerSecond.toDouble()) / Math.log10(1024.0)).toInt()
+        val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
         
         val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
         return String.format("%.1f %s", value, units[digitGroups])
@@ -86,5 +87,63 @@ object FormatUtils {
         }
         
         return Pair(formattedValue, "$unit/s")
+    }
+
+    /**
+     * Format speed - returns only the numeric value part
+     */
+    fun formatSpeedValue(bytesPerSecond: Long): String {
+        if (bytesPerSecond < 0) return "0"
+        if (bytesPerSecond < 1024) return "$bytesPerSecond"
+
+        val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
+        val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
+        return String.format("%.1f", value)
+    }
+
+    /**
+     * Format speed - returns only the unit part
+     */
+    fun formatSpeedUnit(bytesPerSecond: Long): String {
+        if (bytesPerSecond < 0) return "B/s"
+        if (bytesPerSecond < 1024) return "B/s"
+
+        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
+        val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
+        return units[digitGroups]
+    }
+
+    /**
+     * Format bytes - returns only the numeric value part
+     */
+    fun formatBytesValue(bytes: Long): String {
+        if (bytes < 0) return "0"
+        if (bytes < 1024) return "$bytes"
+
+        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
+        val value = bytes / 1024.0.pow(digitGroups.toDouble())
+        return String.format("%.1f", value)
+    }
+
+    /**
+     * Format bytes - returns only the unit part
+     */
+    fun formatBytesUnit(bytes: Long): String {
+        if (bytes < 0) return "B"
+        if (bytes < 1024) return "B"
+
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
+        return units[digitGroups]
+    }
+
+    /**
+     * Format duration in seconds to HH:MM:SS
+     */
+    fun formatDuration(seconds: Long): String {
+        val h = seconds / 3600
+        val m = (seconds % 3600) / 60
+        val s = seconds % 60
+        return String.format("%02d:%02d:%02d", h, m, s)
     }
 }
