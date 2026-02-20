@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material3.Icon
@@ -13,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.englesoft.netspeedindicator.presentation.theme.dimens
 
@@ -44,15 +47,19 @@ fun AppTopBar(
             Text(
                 text = subTitle,
                 style = MaterialTheme.typography.bodyMedium
-                    .copy(color = MaterialTheme.colorScheme.onBackground)
+                    .copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
         if (showStopIcon) {
             Icon(
-                modifier = Modifier.clickable { onStopClick.invoke() },
+                modifier = Modifier
+                    .size(dimens.vectorImageSize)
+                    .clip(CircleShape)
+                    .clickable { onStopClick.invoke() }
+                    .padding(2.dp),
                 imageVector = Icons.Default.PowerSettingsNew,
                 contentDescription = "Stop",
-                tint = MaterialTheme.colorScheme.onBackground
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
