@@ -20,7 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +44,8 @@ import com.englesoft.netspeedindicator.presentation.navigation.ScreenRoute
 @Composable
 fun AppBottomNavigation(
     navController: NavHostController,
-    containerColor: Color = MaterialTheme.colorScheme.background,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
     unSelectedContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
@@ -59,44 +60,44 @@ fun AppBottomNavigation(
     val layoutDirection = LocalLayoutDirection.current
     val isRtl = layoutDirection == LayoutDirection.Rtl
 
-    Surface(
-        color = containerColor,
-        shadowElevation = 4.dp
+    NavigationBar(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = containerColor,
+        contentColor = contentColor
     ) {
-        NavigationBar(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items.forEach { item ->
-                val isSelected = currentRoute == item.route::class.qualifiedName
-                NavigationBarItem(
-                    modifier = Modifier.weight(1f),
-                    selected = isSelected,
-                    label = {
-                        Text(text = stringResource(item.label))
-                    },
-                    icon = {
-                        Icon(
-                            if (currentRoute == item.route::class.qualifiedName) {
-                                item.selectedIcon
-                            } else {
-                                item.unselectedIcon
-                            },
-                            contentDescription = stringResource(item.label),
-                        )
-                    },
-                    onClick = {
-                        if (!isSelected) {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+        items.forEach { item ->
+            val isSelected = currentRoute == item.route::class.qualifiedName
+            NavigationBarItem(
+                modifier = Modifier.weight(1f),
+                selected = isSelected,
+                label = {
+                    Text(text = stringResource(item.label))
+                },
+                icon = {
+                    Icon(
+                        if (isSelected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = stringResource(item.label),
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = selectedColor,
+                    selectedTextColor = selectedColor,
+                    unselectedIconColor = unSelectedContentColor,
+                    unselectedTextColor = unSelectedContentColor,
+                    indicatorColor = selectedColor.copy(alpha = 0.12f)
+                ),
+                onClick = {
+                    if (!isSelected) {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    },
-                )
-            }
+                    }
+                },
+            )
         }
     }
 }
