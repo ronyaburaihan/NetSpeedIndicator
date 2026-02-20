@@ -1,15 +1,40 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.settings
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FormatPaint
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LockClock
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,23 +42,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
-import com.englesoft.netspeedindicator.presentation.screen.main.settings.SettingsViewModel
 
-/**
- * Settings screen for app configuration
- */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
@@ -45,149 +69,303 @@ fun SettingsScreen(
     val appTheme by viewModel.appTheme.collectAsState()
     val dynamicColor by viewModel.dynamicColor.collectAsState()
     val lockScreenNotification by viewModel.lockScreenNotification.collectAsState()
-    val showUploadSpeed by viewModel.showUploadSpeed.collectAsState()
+    val showUploadSpeed by viewModel.showUploadSpeed.collectAsState() // used for Notification Bar toggle here
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
 
-    // Refresh permissions when returning to the screen
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.checkPermissions()
         }
     }
 
-    Scaffold(
-        topBar = {
-            AppTopBar(
-                title = stringResource(R.string.settings),
-                subTitle = stringResource(R.string.preferences_and_customization)
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Display Section
-            SettingsSection(title = "Display") {
-                // Appearance
-                Text(
-                    text = "Appearance",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        //GradientMeshBackground()
+
+        Scaffold(
+            topBar = {
+                AppTopBar(
+                    title = stringResource(R.string.settings),
+                    subTitle = stringResource(R.string.preferences_and_customization),
                 )
-
-                ThemeSegmentedControl(
-                    selectedTheme = appTheme,
-                    onThemeSelected = { viewModel.setAppTheme(it) }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Dynamic Color
-                SettingsSwitchRow(
-                    title = "Dynamic Color",
-                    subtitle = "Use wallpaper colors",
-                    checked = dynamicColor,
-                    onCheckedChange = { viewModel.setDynamicColor(it) }
-                )
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Lock Screen Notification
-                SettingsSwitchRow(
-                    title = "Lock Screen Notification",
-                    subtitle = "Show speed on lock screen",
-                    checked = lockScreenNotification,
-                    onCheckedChange = { viewModel.setLockScreenNotification(it) }
-                )
-
-                // Show Upload Speed
-                SettingsSwitchRow(
-                    title = "Show Upload Speed",
-                    subtitle = "Show upload speed in notification",
-                    checked = showUploadSpeed,
-                    onCheckedChange = { viewModel.setShowUploadSpeed(it) }
-                )
-            }
-            
-            // Permissions Section
-            SettingsSection(title = "Permissions") {
-                // Usage Access
-                PermissionRow(
-                    title = "Usage Access",
-                    subtitle = "Required for data tracking",
-                    isGranted = hasUsagePermission,
-                    onGrantClick = { viewModel.requestUsagePermission() }
-                )
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                // Battery Optimization
-                PermissionRow(
-                    title = "Battery Optimization",
-                    subtitle = "Disable to prevent service killing",
-                    isGranted = isBatteryOptimizationDisabled,
-                    onGrantClick = { viewModel.requestDisableBatteryOptimization() },
-                    isCritical = true
-                )
-
-                if (isAutoStartAvailable) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    PermissionRow(
-                        title = "Auto Start",
-                        subtitle = "Allow app to start in background",
-                        isGranted = false, // Cannot detect reliably, so always show button
-                        onGrantClick = { viewModel.requestAutoStartPermission() },
-                        isCritical = true
+            },
+            containerColor = Color.Transparent
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // Appearance Section
+                SettingsSection(
+                    title = stringResource(R.string.appearance)
+                ) {
+                    GlassPanelItem(
+                        icon = Icons.Default.Palette,
+                        iconTint = Color(0xFF60A5FA), // blue-400
+                        iconBgColor = Color(0xFF3B82F6).copy(alpha = 0.2f),
+                        title = stringResource(R.string.app_theme),
+                        subtitle = stringResource(R.string.dark_mode),
+                        onClick = { viewModel.setAppTheme((appTheme + 1) % 3) },
+                        trailingContent = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = if (appTheme == 2) stringResource(R.string.dark) else "System",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    GlassPanelItem(
+                        icon = Icons.Default.FormatPaint,
+                        iconTint = Color(0xFFC084FC), // purple-400
+                        iconBgColor = Color(0xFFA855F7).copy(alpha = 0.2f),
+                        title = stringResource(R.string.dynamic_color),
+                        subtitle = stringResource(R.string.match_system_wallpaper),
+                        trailingContent = {
+                            CustomSwitch(
+                                checked = dynamicColor,
+                                onCheckedChange = { viewModel.setDynamicColor(it) })
+                        }
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    GlassPanelItem(
+                        icon = Icons.Default.Language,
+                        iconTint = Color(0xFFFB7185), // rose-400
+                        iconBgColor = Color(0xFFF43F5E).copy(alpha = 0.2f),
+                        title = stringResource(R.string.app_language),
+                        subtitle = stringResource(R.string.english_us),
+                        onClick = { /* Handle language change */ },
+                        trailingContent = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.en),
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     )
                 }
-            }
 
-            // About Section
-            SettingsSection(title = "About") {
-                AboutRow(title = "Version", value = "1.0.0")
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                AboutRow(title = "Privacy Policy", onClick = { /* TODO */ })
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                AboutRow(title = "Licenses", onClick = { /* TODO */ })
-            }
+                // Display Section
+                SettingsSection(title = stringResource(R.string.display)) {
+                    GlassPanelItem(
+                        icon = Icons.Default.Speed,
+                        iconTint = Color(0xFF34D399), // emerald-400
+                        iconBgColor = Color(0xFF10B981).copy(alpha = 0.2f),
+                        title = stringResource(R.string.unit_display),
+                        subtitle = stringResource(R.string.mb_s_vs_mb_s),
+                        onClick = { /* Toggle unit */ },
+                        trailingContent = {
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    GlassPanelItem(
+                        icon = Icons.Default.LockClock,
+                        iconTint = Color(0xFFFBBF24), // amber-400
+                        iconBgColor = Color(0xFFF59E0B).copy(alpha = 0.2f),
+                        title = stringResource(R.string.lock_screen_widget),
+                        subtitle = stringResource(R.string.show_speed_on_lockscreen),
+                        trailingContent = {
+                            CustomSwitch(
+                                checked = lockScreenNotification,
+                                onCheckedChange = { viewModel.setLockScreenNotification(it) })
+                        }
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    GlassPanelItem(
+                        icon = Icons.Default.NotificationsActive,
+                        iconTint = Color(0xFFF472B6), // pink-400
+                        iconBgColor = Color(0xFFEC4899).copy(alpha = 0.2f),
+                        title = stringResource(R.string.notification_bar),
+                        subtitle = stringResource(R.string.persistent_speed_monitor),
+                        trailingContent = {
+                            CustomSwitch(
+                                checked = showUploadSpeed,
+                                onCheckedChange = { viewModel.setShowUploadSpeed(it) })
+                        }
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                // System Section
+                SettingsSection(title = stringResource(R.string.system)) {
+                    GlassPanelItem(
+                        icon = androidx.compose.material.icons.Icons.Default.Info, // Used as fallback for security as Security icon name may clash
+                        iconTint = Color(0xFF22D3EE), // cyan-400
+                        iconBgColor = Color(0xFF06B6D4).copy(alpha = 0.2f),
+                        title = stringResource(R.string.usage_access),
+                        subtitle = stringResource(R.string.required_for_data_tracking),
+                        onClick = { viewModel.requestUsagePermission() },
+                        trailingContent = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (hasUsagePermission) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(Color(0xFF22C55E).copy(alpha = 0.2f)) // green-500/20
+                                            .border(
+                                                1.dp,
+                                                Color(0xFF22C55E).copy(alpha = 0.3f),
+                                                RoundedCornerShape(16.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.granted),
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF4ADE80)
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    )
+                    Divider(
+                        color = Color.White.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    GlassPanelItem(
+                        icon = Icons.Default.BatteryChargingFull,
+                        iconTint = Color(0xFFFB923C), // orange-400
+                        iconBgColor = Color(0xFFF97316).copy(alpha = 0.2f),
+                        title = stringResource(R.string.battery_optimization),
+                        subtitle = stringResource(R.string.disable_for_accurate_monitoring),
+                        onClick = { viewModel.requestDisableBatteryOptimization() },
+                        trailingContent = {
+                            CustomSwitch(
+                                checked = isBatteryOptimizationDisabled,
+                                onCheckedChange = { /* Battery flow*/ })
+                        }
+                    )
+                    if (isAutoStartAvailable) {
+                        Divider(
+                            color = Color.White.copy(alpha = 0.05f),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        GlassPanelItem(
+                            icon = Icons.Default.RocketLaunch,
+                            iconTint = Color(0xFF2DD4BF), // teal-400
+                            iconBgColor = Color(0xFF14B8A6).copy(alpha = 0.2f),
+                            title = stringResource(R.string.auto_start),
+                            subtitle = stringResource(R.string.launch_on_device_boot),
+                            onClick = { viewModel.requestAutoStartPermission() },
+                            trailingContent = {
+                                CustomSwitch(checked = false, onCheckedChange = {})
+                            }
+                        )
+                    }
+                }
+
+                // About Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color.White.copy(alpha = 0.03f))
+                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
+                ) {
+                    GlassPanelItem(
+                        icon = Icons.Default.Info,
+                        iconTint = Color(0xFFCBD5E1), // slate-300
+                        iconBgColor = Color(0xFF64748B).copy(alpha = 0.2f),
+                        title = stringResource(R.string.about),
+                        subtitle = stringResource(R.string.version_text),
+                        trailingContent = {
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+
+                // Footer
+                Text(
+                    text = "Designed with \u2764\uFE0F for SpeedMonitor\nBuild 2023.10.25",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 40.dp)
+                )
+
+                Spacer(modifier = Modifier.height(60.dp)) // bottom nav space
+            }
         }
     }
 }
 
 @Composable
-fun SettingsSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column {
+fun SettingsSection(title: String, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            text = title.uppercase(),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFA5B4FC), // indigo-300
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
         )
-
-        OutlinedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White.copy(alpha = 0.03f))
+                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
+                .padding(4.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
+            Column {
                 content()
             }
         }
@@ -195,152 +373,127 @@ fun SettingsSection(
 }
 
 @Composable
-fun ThemeSegmentedControl(
-    selectedTheme: Int,
-    onThemeSelected: (Int) -> Unit
+fun GlassPanelItem(
+    icon: ImageVector,
+    iconTint: Color,
+    iconBgColor: Color,
+    title: String,
+    subtitle: String,
+    onClick: (() -> Unit)? = null,
+    trailingContent: @Composable () -> Unit
 ) {
-    val options = listOf("System", "Light", "Dark")
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        options.forEachIndexed { index, label ->
-            val isSelected = selectedTheme == index
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.background
-                        else Color.Transparent
-                    )
-                    .clickable { onThemeSelected(index) },
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(iconBgColor),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isSelected) MaterialTheme.colorScheme.onBackground
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun SettingsSwitchRow(
-    title: String,
-    subtitle: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (subtitle != null) {
+            Column {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
+        trailingContent()
+    }
+}
+
+@Composable
+fun CustomSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = Color.White,
+            checkedTrackColor = Color(0xFF6366F1), // indigo-500
+            uncheckedThumbColor = Color(0xFF94A3B8), // slate-400
+            uncheckedTrackColor = Color(0xFF334155), // slate-700
+            uncheckedBorderColor = Color.Transparent
         )
-    }
+    )
 }
 
 @Composable
-fun PermissionRow(
-    title: String,
-    subtitle: String,
-    isGranted: Boolean,
-    onGrantClick: () -> Unit,
-    isCritical: Boolean = false
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        if (isGranted) {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Granted",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        } else {
-            Button(
-                onClick = onGrantClick,
-                colors = if (isCritical) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) else ButtonDefaults.buttonColors()
-            ) {
-                Text(if (isCritical) "Fix" else "Allow")
-            }
-        }
-    }
-}
-
-@Composable
-fun AboutRow(
-    title: String,
-    value: String? = null,
-    onClick: (() -> Unit)? = null
-) {
-    Row(
+fun GradientMeshBackground() {
+    Canvas(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
+            .fillMaxSize()
+            .background(Color(0xFF0F172A))
+    ) { // slate-900 base
+        val w = size.width
+        val h = size.height
+
+        // Top Left Blue
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF3B82F6).copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(0f, 0f),
+                radius = w * 0.8f
+            ),
+            center = Offset(0f, 0f),
+            radius = w * 0.8f
         )
 
-        if (value != null) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else if (onClick != null) {
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = "Go",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        // Top Right Indigo
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF6366F1).copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(w, 0f),
+                radius = w * 0.8f
+            ),
+            center = Offset(w, 0f),
+            radius = w * 0.8f
+        )
+
+        // Bottom Right Purple
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFFA855F7).copy(alpha = 0.1f), Color.Transparent),
+                center = Offset(w, h),
+                radius = w * 0.8f
+            ),
+            center = Offset(w, h),
+            radius = w * 0.8f
+        )
+
+        // Bottom Left Blue
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF3B82F6).copy(alpha = 0.1f), Color.Transparent),
+                center = Offset(0f, h),
+                radius = w * 0.8f
+            ),
+            center = Offset(0f, h),
+            radius = w * 0.8f
+        )
     }
 }
