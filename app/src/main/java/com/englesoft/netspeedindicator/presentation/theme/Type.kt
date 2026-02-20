@@ -28,9 +28,9 @@ val Typography = Typography(
     displayMedium = TextStyle(
         fontFamily = OutfitFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 32.sp,
-        letterSpacing = (-0.64).sp
+        fontSize = 30.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = OutfitFontFamily,

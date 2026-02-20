@@ -71,8 +71,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    viewModel: HistoryViewModel = hiltViewModel(),
-    onSettingsClick: () -> Unit
+    viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val dailyUsage by viewModel.dailyUsage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -140,7 +139,6 @@ fun HistoryScreen(
                             text = { Text("Settings") },
                             onClick = {
                                 showMenu = false
-                                onSettingsClick()
                             },
                             leadingIcon = {
                                 Icon(
