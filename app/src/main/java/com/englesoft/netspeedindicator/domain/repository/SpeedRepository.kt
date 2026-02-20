@@ -1,6 +1,6 @@
 package com.englesoft.netspeedindicator.domain.repository
 
-import com.englesoft.netspeedindicator.domain.model.SpeedModel
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,10 +12,10 @@ interface SpeedRepository {
      * Observe current internet speed in real-time
      * Emits speed updates periodically
      */
-    fun observeSpeed(): Flow<SpeedModel>
+    fun observeSpeed(): Flow<SpeedInfo>
     
     /**
      * Get current speed snapshot
      */
-    suspend fun getCurrentSpeed(): SpeedModel
+    suspend fun getCurrentSpeed(): SpeedInfo
 }

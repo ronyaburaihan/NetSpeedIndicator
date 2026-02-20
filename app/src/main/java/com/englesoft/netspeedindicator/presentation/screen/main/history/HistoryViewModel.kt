@@ -7,7 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetMonthlyUsageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,11 +32,11 @@ class HistoryViewModel @Inject constructor(
     private val trafficStateManager: TrafficStateManager
 ) : AndroidViewModel(application) {
 
-    private val _dailyUsage = MutableStateFlow<List<UsageModel>>(emptyList())
-    val dailyUsage: StateFlow<List<UsageModel>> = _dailyUsage.asStateFlow()
+    private val _dailyUsage = MutableStateFlow<List<UsageInfo>>(emptyList())
+    val dailyUsage: StateFlow<List<UsageInfo>> = _dailyUsage.asStateFlow()
 
-    private val _monthlyUsage = MutableStateFlow<List<UsageModel>>(emptyList())
-    val monthlyUsage: StateFlow<List<UsageModel>> = _monthlyUsage.asStateFlow()
+    private val _monthlyUsage = MutableStateFlow<List<UsageInfo>>(emptyList())
+    val monthlyUsage: StateFlow<List<UsageInfo>> = _monthlyUsage.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -100,7 +100,7 @@ class HistoryViewModel @Inject constructor(
                 val dbUsageMap = dbUsageList.associateBy { it.date }
 
                 // Generate full list of dates for the month
-                val fullList = mutableListOf<UsageModel>()
+                val fullList = mutableListOf<UsageInfo>()
                 val daysInMonth = targetMonth.lengthOfMonth()
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
@@ -120,7 +120,7 @@ class HistoryViewModel @Inject constructor(
                     val date = targetMonth.atDay(day)
                     val dateStr = date.format(formatter)
 
-                    val usage = dbUsageMap[dateStr] ?: UsageModel(
+                    val usage = dbUsageMap[dateStr] ?: UsageInfo(
                         date = dateStr,
                         wifiRxBytes = 0, wifiTxBytes = 0, mobileRxBytes = 0, mobileTxBytes = 0
                     )

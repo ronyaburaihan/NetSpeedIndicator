@@ -1,10 +1,6 @@
 package com.englesoft.netspeedindicator.domain.model
 
-/**
- * Domain model representing data usage
- * Pure Kotlin - no Android dependencies
- */
-data class UsageModel(
+data class UsageInfo(
     val date: String, // Format: yyyy-MM-dd
     val wifiRxBytes: Long = 0L, // WiFi received bytes
     val wifiTxBytes: Long = 0L, // WiFi transmitted bytes
@@ -13,10 +9,10 @@ data class UsageModel(
 ) {
     val totalBytes: Long
         get() = wifiRxBytes + wifiTxBytes + mobileRxBytes + mobileTxBytes
-    
+
     val wifiTotalBytes: Long
         get() = wifiRxBytes + wifiTxBytes
-    
+
     val mobileTotalBytes: Long
         get() = mobileRxBytes + mobileTxBytes
 }

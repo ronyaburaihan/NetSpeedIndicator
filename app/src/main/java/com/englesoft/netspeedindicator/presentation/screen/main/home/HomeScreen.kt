@@ -1,7 +1,18 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.home
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -11,12 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.englesoft.netspeedindicator.presentation.screen.main.home.HomeViewModel
 import com.englesoft.netspeedindicator.core.util.FormatUtils
 
-/**
- * Home screen showing real-time speed and today's usage
- */
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
@@ -113,36 +120,23 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Control Button
-        Button(
-            onClick = {
-                if (isServiceRunning) {
-                    viewModel.stopService()
-                } else {
-                    viewModel.startService()
-                }
-            },
+@Composable
+private fun HomeScreenContent(
+    uiState: HomeUiState
+) {
+    Scaffold(
+        topBar = {}
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isServiceRunning) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-            )
+                .fillMaxSize()
+                .padding(it)
         ) {
-            Text(
-                text = if (isServiceRunning) "Stop Monitoring" else "Start Monitoring",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 

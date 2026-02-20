@@ -58,8 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.R
-import com.englesoft.netspeedindicator.domain.model.UsageModel
-import com.englesoft.netspeedindicator.presentation.screen.main.history.HistoryViewModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -89,7 +88,7 @@ fun HistoryScreen(
     val (thisMonthUsage, dateRangeStr) = remember(dailyUsage, targetMonthPrefix) {
         val monthUsages = dailyUsage.filter { it.date.startsWith(targetMonthPrefix) }
 
-        val total = UsageModel(
+        val total = UsageInfo(
             date = "Total",
             wifiRxBytes = monthUsages.sumOf { it.wifiRxBytes },
             wifiTxBytes = monthUsages.sumOf { it.wifiTxBytes },
@@ -451,7 +450,7 @@ fun TableHeader() {
 }
 
 @Composable
-fun UsageRow(usage: UsageModel) {
+fun UsageRow(usage: UsageInfo) {
     val dateParts = formatDateParts(usage.date)
 
     Row(
@@ -580,7 +579,7 @@ fun UsageRow(usage: UsageModel) {
 }
 
 @Composable
-fun MonthSummaryCard(usage: UsageModel, dateRange: String, title: String) {
+fun MonthSummaryCard(usage: UsageInfo, dateRange: String, title: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

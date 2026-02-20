@@ -6,27 +6,24 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
-import com.englesoft.netspeedindicator.domain.model.SpeedModel
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-/**
- * ViewModel for Home screen
- * Manages UI state for current speed and today's usage
- */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val application: Application,
     private val trafficStateManager: TrafficStateManager
 ) : AndroidViewModel(application) {
 
-    // Expose flows directly from TrafficStateManager to ensure UI is perfectly synced with Service
-    val currentSpeed: StateFlow<SpeedModel> = trafficStateManager.speed
-    val todayUsage: StateFlow<UsageModel?> = trafficStateManager.dailyUsage
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState
+    val currentSpeed: StateFlow<SpeedInfo> = trafficStateManager.speed
+    val todayUsage: StateFlow<UsageInfo?> = trafficStateManager.dailyUsage
 
     private val _isServiceRunning = MutableStateFlow(false)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()

@@ -1,6 +1,6 @@
 package com.englesoft.netspeedindicator.domain.usecase
 
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.repository.UsageRepository
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -17,28 +17,28 @@ class GetDailyUsageUseCase @Inject constructor(
     /**
      * Get usage for today
      */
-    suspend fun getToday(): UsageModel? {
+    suspend fun getToday(): UsageInfo? {
         return usageRepository.getTodayUsage()
     }
     
     /**
      * Observe today's usage in real-time
      */
-    fun observeToday(): Flow<UsageModel?> {
+    fun observeToday(): Flow<UsageInfo?> {
         return usageRepository.observeTodayUsage()
     }
     
     /**
      * Get usage for a specific date
      */
-    suspend fun getByDate(date: String): UsageModel? {
+    suspend fun getByDate(date: String): UsageInfo? {
         return usageRepository.getUsageByDate(date)
     }
     
     /**
      * Get usage for last N days
      */
-    suspend fun getLastNDays(days: Int): List<UsageModel> {
+    suspend fun getLastNDays(days: Int): List<UsageInfo> {
         val endDate = LocalDate.now()
         val startDate = endDate.minusDays(days.toLong() - 1)
         

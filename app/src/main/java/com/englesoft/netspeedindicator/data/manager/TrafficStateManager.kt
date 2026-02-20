@@ -1,7 +1,7 @@
 package com.englesoft.netspeedindicator.data.manager
 
-import com.englesoft.netspeedindicator.domain.model.SpeedModel
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
@@ -14,17 +14,17 @@ import javax.inject.Singleton
 @Singleton
 class TrafficStateManager @Inject constructor() {
 
-    private val _speed = MutableStateFlow(SpeedModel())
+    private val _speed = MutableStateFlow(SpeedInfo())
     val speed = _speed.asStateFlow()
 
-    private val _dailyUsage = MutableStateFlow<UsageModel?>(null)
+    private val _dailyUsage = MutableStateFlow<UsageInfo?>(null)
     val dailyUsage = _dailyUsage.asStateFlow()
 
-    fun updateSpeed(speed: SpeedModel) {
+    fun updateSpeed(speed: SpeedInfo) {
         _speed.value = speed
     }
 
-    fun updateDailyUsage(usage: UsageModel) {
+    fun updateDailyUsage(usage: UsageInfo) {
         _dailyUsage.value = usage
     }
 }

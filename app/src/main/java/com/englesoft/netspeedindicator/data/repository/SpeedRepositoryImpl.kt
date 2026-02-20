@@ -1,7 +1,7 @@
 package com.englesoft.netspeedindicator.data.repository
 
 import com.englesoft.netspeedindicator.data.datasource.SpeedDataSource
-import com.englesoft.netspeedindicator.domain.model.SpeedModel
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
 import com.englesoft.netspeedindicator.domain.repository.SpeedRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -17,10 +17,10 @@ class SpeedRepositoryImpl @Inject constructor(
     private val speedDataSource: SpeedDataSource
 ) : SpeedRepository {
     
-    override fun observeSpeed(): Flow<SpeedModel> {
+    override fun observeSpeed(): Flow<SpeedInfo> {
         return speedDataSource.observeSpeed(intervalMs = 1000L)
             .map { (downloadSpeed, uploadSpeed) ->
-                SpeedModel(
+                SpeedInfo(
                     downloadBytesPerSecond = downloadSpeed,
                     uploadBytesPerSecond = uploadSpeed,
                     timestamp = System.currentTimeMillis()
@@ -28,10 +28,10 @@ class SpeedRepositoryImpl @Inject constructor(
             }
     }
     
-    override suspend fun getCurrentSpeed(): SpeedModel {
+    override suspend fun getCurrentSpeed(): SpeedInfo {
         // For snapshot, we return zero speed
         // Real-time monitoring should use observeSpeed()
-        return SpeedModel(
+        return SpeedInfo(
             downloadBytesPerSecond = 0L,
             uploadBytesPerSecond = 0L,
             timestamp = System.currentTimeMillis()
