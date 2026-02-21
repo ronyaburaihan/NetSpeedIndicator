@@ -190,7 +190,7 @@ class SpeedMonitorService : Service() {
                     val wifiUsageStr = FormatUtils.formatBytes(wifiUsageTotal)
 
                     // Format for Status Bar Icon (Compact)
-                    val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.downloadBytesPerSecond)
+                    val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.totalBytesPerSecond)
 
                     val signalStrength = getSignalStrength()
 
