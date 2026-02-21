@@ -100,8 +100,7 @@ fun HistoryScreen(
             AppTopBar(
                 title = stringResource(R.string.history),
                 subTitle = stringResource(R.string.data_usage_logs),
-                showTrailingIcon = true,
-                trailingIcon = Icons.Outlined.CalendarMonth
+                showTrailingIcon = false
             )
         }
     ) { paddingValues ->

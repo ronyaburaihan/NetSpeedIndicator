@@ -105,10 +105,11 @@ class SpeedMonitorService : Service() {
             this,
             "0 B/s",
             null,
+            "0 B/s",
             "0 B",
             "0 B",
-            "0 B",
-            "--%"
+            "",
+            ""
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -177,7 +178,8 @@ class SpeedMonitorService : Service() {
                     trafficStateManager.updateDailyUsage(liveUsage)
 
                     // 5. Format strings for Notification
-                    val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
+                    val totalSpeedStr = FormatUtils.formatSpeed(speed.totalBytesPerSecond)
+                    val downloadSpeedStr = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
                     val uploadSpeedStr =
                         if (showUploadSpeed) FormatUtils.formatSpeed(speed.uploadBytesPerSecond) else null
 
@@ -195,8 +197,9 @@ class SpeedMonitorService : Service() {
                     // 6. Update Notification (Use notify, NOT startForeground repeatedly)
                     val notification = NotificationHelper.buildNotification(
                         this@SpeedMonitorService,
-                        downloadSpeed,
+                        downloadSpeedStr,
                         uploadSpeedStr,
+                        totalSpeedStr,
                         mobileUsageStr,
                         wifiUsageStr,
                         signalStrength,

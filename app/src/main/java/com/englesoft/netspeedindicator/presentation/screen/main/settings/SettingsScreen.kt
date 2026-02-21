@@ -91,9 +91,7 @@ fun SettingsScreen(
                 AppTopBar(
                     title = stringResource(R.string.settings),
                     subTitle = stringResource(R.string.preferences_and_customization),
-                    showTrailingIcon = true,
-                    trailingIcon = Icons.Default.Search,
-                    onTrailingIconClick = { /* Search */ }
+                    showTrailingIcon = false
                 )
             },
             containerColor = Color.Transparent
