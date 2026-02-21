@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.LockClock
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -89,6 +91,9 @@ fun SettingsScreen(
                 AppTopBar(
                     title = stringResource(R.string.settings),
                     subTitle = stringResource(R.string.preferences_and_customization),
+                    showTrailingIcon = true,
+                    trailingIcon = Icons.Default.Search,
+                    onTrailingIconClick = { /* Search */ }
                 )
             },
             containerColor = Color.Transparent

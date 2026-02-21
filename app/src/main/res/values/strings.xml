@@ -48,4 +48,10 @@
     <string name="about">About</string>
     <string name="version_text">Version 2.4.0</string>
     <string name="designed_with_love">Designed with %1$s for SpeedMonitor\nBuild 2023.10.25</string>
+    <string name="this_month">This Month</string>
+    <string name="last_month">Last Month</string>
+    <string name="last_3_months">Last 3 Months</string>
+    <string name="month_summary">Month Summary</string>
+    <string name="total">Total</string>
+    <string name="date">Date</string>
 </resources>

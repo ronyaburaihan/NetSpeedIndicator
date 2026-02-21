@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Wifi
@@ -80,8 +82,9 @@ private fun HomeScreenContent(uiState: HomeUiState) {
             AppTopBar(
                 title = stringResource(R.string.dashboard),
                 subTitle = stringResource(R.string.real_time_monitor),
-                showStopIcon = true,
-                onStopClick = { /* Handle stop */ }
+                showTrailingIcon = true,
+                trailingIcon = Icons.Default.PowerSettingsNew,
+                onTrailingIconClick = { /* Handle stop */ }
             )
         },
         containerColor = MaterialTheme.colorScheme.background

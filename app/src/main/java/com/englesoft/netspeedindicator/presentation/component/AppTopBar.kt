@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.englesoft.netspeedindicator.presentation.theme.dimens
 
@@ -24,8 +25,9 @@ fun AppTopBar(
     modifier: Modifier = Modifier,
     title: String = "Dashboard",
     subTitle: String = "Real-time Monitor",
-    showStopIcon: Boolean = false,
-    onStopClick: () -> Unit = {}
+    showTrailingIcon: Boolean = false,
+    trailingIcon: ImageVector = Icons.Default.PowerSettingsNew,
+    onTrailingIconClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -50,15 +52,15 @@ fun AppTopBar(
                     .copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
-        if (showStopIcon) {
+        if (showTrailingIcon) {
             Icon(
                 modifier = Modifier
                     .size(dimens.vectorImageSize)
                     .clip(CircleShape)
-                    .clickable { onStopClick.invoke() }
+                    .clickable { onTrailingIconClick.invoke() }
                     .padding(2.dp),
-                imageVector = Icons.Default.PowerSettingsNew,
-                contentDescription = "Stop",
+                imageVector = trailingIcon,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
