@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
@@ -140,19 +142,19 @@ fun AppBottomNavigationItem(
     ) {
         Box(
             modifier = Modifier
-                .size(width = 64.dp, height = 36.dp)
-                .clip(RoundedCornerShape(50))
+                .sizeIn(minWidth = 56.dp, minHeight = 32.dp)
+                .clip(CircleShape)
                 .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent)
                 .then(
                     if (isSelected) Modifier
                         .border(
                             1.dp,
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                            RoundedCornerShape(50)
+                            CircleShape
                         )
                         .shadow(
                             elevation = 15.dp,
-                            shape = RoundedCornerShape(50),
+                            shape = CircleShape,
                             ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                             spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                         )
