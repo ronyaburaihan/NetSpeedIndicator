@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
+import com.englesoft.netspeedindicator.presentation.theme.dimens
 
 @Composable
 fun SettingsScreen(
@@ -99,9 +101,9 @@ fun SettingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .padding(top = paddingValues.calculateTopPadding())
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = dimens.horizontalPadding),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // Appearance Section
@@ -123,18 +125,18 @@ fun SettingsScreen(
                                 Text(
                                     text = if (appTheme == 2) stringResource(R.string.dark) else "System",
                                     fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Icon(
                                     Icons.Default.ChevronRight,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
                     )
-                    Divider(
-                        color = Color.White.copy(alpha = 0.05f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     GlassPanelItem(
@@ -356,7 +358,7 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
             text = title.uppercase(),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFA5B4FC), // indigo-300
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
             letterSpacing = 1.sp,
             modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
         )
@@ -364,8 +366,8 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color.White.copy(alpha = 0.03f))
-                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
                 .padding(4.dp)
         ) {
             Column {
@@ -417,7 +419,7 @@ fun GlassPanelItem(
                     text = title,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = subtitle,

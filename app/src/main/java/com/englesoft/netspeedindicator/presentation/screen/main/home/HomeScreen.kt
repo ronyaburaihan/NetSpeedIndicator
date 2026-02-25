@@ -63,6 +63,7 @@ import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.core.util.FormatUtils
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
 import com.englesoft.netspeedindicator.presentation.theme.OutfitFontFamily
+import com.englesoft.netspeedindicator.presentation.theme.dimens
 
 @Composable
 fun HomeScreen(
@@ -74,7 +75,9 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeScreenContent(uiState: HomeUiState) {
+private fun HomeScreenContent(
+    uiState: HomeUiState
+) {
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -92,14 +95,16 @@ private fun HomeScreenContent(uiState: HomeUiState) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(horizontal = dimens.horizontalPadding),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             GradientSpeedCard(uiState = uiState)
-            
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -126,9 +131,9 @@ private fun HomeScreenContent(uiState: HomeUiState) {
                         )
                     }
                 }
-                
+
                 TotalUsageCard(uiState = uiState)
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -144,20 +149,7 @@ private fun HomeScreenContent(uiState: HomeUiState) {
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PeakSpeedCard(
-                    modifier = Modifier.weight(1f),
-                    peakSpeed = uiState.peakSpeed
-                )
-                SessionTimeCard(
-                    modifier = Modifier.weight(1f),
-                    sessionSeconds = uiState.sessionDurationSeconds
-                )
-            }
-            Spacer(modifier = Modifier.height(80.dp)) // Extra space for bottom nav
+            Spacer(modifier = Modifier.height(dimens.bottomBarHeight))
         }
     }
 }
@@ -225,7 +217,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                         letterSpacing = 1.sp
                     )
                 }
-                
+
                 AudioWaveBars()
             }
 
@@ -246,18 +238,30 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                     )
                     Text(
                         text = buildAnnotatedString {
-                            withStyle(SpanStyle(fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.White)) {
+                            withStyle(
+                                SpanStyle(
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            ) {
                                 append(FormatUtils.formatSpeedValue(totalSpeed))
                             }
                             append(" ")
-                            withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.8f))) {
+                            withStyle(
+                                SpanStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            ) {
                                 append(FormatUtils.formatSpeedUnit(totalSpeed))
                             }
                         },
                         fontFamily = OutfitFontFamily
                     )
                 }
-                
+
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -286,7 +290,12 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                     label = stringResource(R.string.download),
                     value = FormatUtils.formatSpeed(downloadSpeed),
                     icon = {
-                        Icon(Icons.Default.ArrowDownward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 )
                 GlassPanelStat(
@@ -294,7 +303,12 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                     label = stringResource(R.string.upload),
                     value = FormatUtils.formatSpeed(uploadSpeed),
                     icon = {
-                        Icon(Icons.Default.ArrowUpward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.ArrowUpward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 )
             }
@@ -303,7 +317,12 @@ fun GradientSpeedCard(uiState: HomeUiState) {
 }
 
 @Composable
-fun GlassPanelStat(modifier: Modifier = Modifier, label: String, value: String, icon: @Composable () -> Unit) {
+fun GlassPanelStat(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    icon: @Composable () -> Unit
+) {
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -366,7 +385,9 @@ fun AudioWaveBars() {
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.Bottom,
-        modifier = Modifier.height(24.dp).alpha(0.6f)
+        modifier = Modifier
+            .height(24.dp)
+            .alpha(0.6f)
     ) {
         listOf(0.3f, 0.5f, 0.7f, 0.4f, 0.6f).forEach { heightFraction ->
             Box(
@@ -383,7 +404,8 @@ fun AudioWaveBars() {
 @Composable
 fun TotalUsageCard(uiState: HomeUiState) {
     val totalBytes = uiState.todayUsage.totalBytes
-    val percentage = if (totalBytes > 0) 85f else 0f // mock static percentage from HTML design for now
+    val percentage =
+        if (totalBytes > 0) 85f else 0f // mock static percentage from HTML design for now
 
     Box(
         modifier = Modifier
@@ -407,7 +429,11 @@ fun TotalUsageCard(uiState: HomeUiState) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color(0xFF3B82F6).copy(alpha = 0.1f)) // blue-500/10
-                            .border(1.dp, Color(0xFF3B82F6).copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .border(
+                                1.dp,
+                                Color(0xFF3B82F6).copy(alpha = 0.3f),
+                                RoundedCornerShape(8.dp)
+                            )
                             .padding(6.dp)
                     ) {
                         Icon(
@@ -461,7 +487,7 @@ fun TotalUsageCard(uiState: HomeUiState) {
                     )
                 }
             }
-            
+
             // Conic gauge mock
             Box(
                 contentAlignment = Alignment.Center,
@@ -533,7 +559,9 @@ fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
             imageVector = Icons.Default.SignalCellularAlt,
             contentDescription = null,
             tint = Color(0xFFF59E0B).copy(alpha = 0.2f),
-            modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(48.dp)
         )
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -543,7 +571,12 @@ fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFF59E0B)))
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF59E0B))
+                )
                 Text(
                     text = stringResource(R.string.mobile),
                     fontSize = 14.sp,
@@ -553,11 +586,23 @@ fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
             }
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)) {
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    ) {
                         append(FormatUtils.formatBytesValue(usage))
                     }
                     append(" ")
-                    withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
                         append(FormatUtils.formatBytesUnit(usage))
                     }
                 },
@@ -568,7 +613,10 @@ fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
 }
 
 @Composable
-fun WifiUsageCard(modifier: Modifier = Modifier, usage: Long) {
+fun WifiUsageCard(
+    modifier: Modifier = Modifier,
+    usage: Long
+) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
@@ -581,7 +629,9 @@ fun WifiUsageCard(modifier: Modifier = Modifier, usage: Long) {
             imageVector = Icons.Default.Wifi,
             contentDescription = null,
             tint = Color(0xFF6366F1).copy(alpha = 0.2f),
-            modifier = Modifier.align(Alignment.TopEnd).size(48.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(48.dp)
         )
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -591,7 +641,12 @@ fun WifiUsageCard(modifier: Modifier = Modifier, usage: Long) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF6366F1)))
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF6366F1))
+                )
                 Text(
                     text = stringResource(R.string.wifi),
                     fontSize = 14.sp,
@@ -601,95 +656,27 @@ fun WifiUsageCard(modifier: Modifier = Modifier, usage: Long) {
             }
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)) {
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    ) {
                         append(FormatUtils.formatBytesValue(usage))
                     }
                     append(" ")
-                    withStyle(SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                    withStyle(
+                        SpanStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
                         append(FormatUtils.formatBytesUnit(usage))
                     }
                 },
                 fontFamily = OutfitFontFamily
-            )
-        }
-    }
-}
-
-@Composable
-fun PeakSpeedCard(modifier: Modifier = Modifier, peakSpeed: Long) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-            .padding(20.dp)
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Speed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = stringResource(R.string.peak).uppercase(),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 1.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = FormatUtils.formatSpeed(peakSpeed),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = OutfitFontFamily,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-    }
-}
-
-@Composable
-fun SessionTimeCard(modifier: Modifier = Modifier, sessionSeconds: Long) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
-            .padding(20.dp)
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Timer,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = stringResource(R.string.time).uppercase(),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 1.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = FormatUtils.formatDuration(sessionSeconds),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = OutfitFontFamily,
-                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }

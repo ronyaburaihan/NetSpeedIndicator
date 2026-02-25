@@ -95,7 +95,6 @@ fun HistoryScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AppTopBar(
                 title = stringResource(R.string.history),
@@ -107,7 +106,7 @@ fun HistoryScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
             Column(
                 modifier = Modifier
@@ -159,7 +158,9 @@ fun HistoryScreen(
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
                         .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         TableHeader()
 
                         if (isLoading) {
