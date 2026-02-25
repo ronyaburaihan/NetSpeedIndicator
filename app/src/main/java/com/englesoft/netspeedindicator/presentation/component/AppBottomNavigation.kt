@@ -3,12 +3,20 @@ package com.englesoft.netspeedindicator.presentation.component
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -18,36 +26,30 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.presentation.navigation.ScreenRoute
 
-
 @Composable
 fun AppBottomNavigation(
     navController: NavHostController,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unSelectedContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    containerColor: Color = MaterialTheme.colorScheme.surface
 ) {
     val items = listOf(
         AppBottomNavItem.Home,
@@ -57,47 +59,48 @@ fun AppBottomNavigation(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val layoutDirection = LocalLayoutDirection.current
-    val isRtl = layoutDirection == LayoutDirection.Rtl
 
-    NavigationBar(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = containerColor,
-        contentColor = contentColor
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(containerColor)
+            .navigationBarsPadding()
     ) {
-        items.forEach { item ->
-            val isSelected = currentRoute == item.route::class.qualifiedName
-            NavigationBarItem(
-                modifier = Modifier.weight(1f),
-                selected = isSelected,
-                label = {
-                    Text(text = stringResource(item.label))
-                },
-                icon = {
-                    Icon(
-                        if (isSelected) item.selectedIcon else item.unselectedIcon,
-                        contentDescription = stringResource(item.label),
-                    )
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = selectedColor,
-                    selectedTextColor = selectedColor,
-                    unselectedIconColor = unSelectedContentColor,
-                    unselectedTextColor = unSelectedContentColor,
-                    indicatorColor = selectedColor.copy(alpha = 0.12f)
-                ),
-                onClick = {
-                    if (!isSelected) {
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+        // Top border
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                .align(Alignment.TopCenter)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                val isSelected = currentRoute == item.route::class.qualifiedName
+
+                AppBottomNavigationItem(
+                    item = item,
+                    isSelected = isSelected,
+                    onClick = {
+                        if (!isSelected) {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
-                },
-            )
+                )
+            }
         }
     }
 }
@@ -107,44 +110,73 @@ fun AppBottomNavigationItem(
     modifier: Modifier = Modifier,
     item: AppBottomNavItem,
     isSelected: Boolean,
-    unSelectedContentColor: Color,
-    selectedContentColor: Color,
     onClick: () -> Unit,
 ) {
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.10f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+        targetValue = if (isSelected) 1.05f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "scale_animation"
     )
 
-    val textStyle = if (isSelected) MaterialTheme.typography.bodySmall.copy(
-        fontWeight = FontWeight.Medium, color = selectedContentColor
-    ) else MaterialTheme.typography.bodySmall.copy(
-        fontWeight = FontWeight.Normal, color = unSelectedContentColor
-    )
+    val iconColor =
+        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    val textColor =
+        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    val fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+
+    val interactionSource = remember { MutableInteractionSource() }
 
     Column(
         modifier = modifier
-            .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(top = 8.dp)
+            .graphicsLayer(scaleX = scale, scaleY = scale),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-        Icon(
-            imageVector = (if (isSelected) item.selectedIcon else item.unselectedIcon),
-            contentDescription = stringResource(item.label),
+        Box(
             modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer(scaleX = scale, scaleY = scale)
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
+                .size(width = 64.dp, height = 36.dp)
+                .clip(RoundedCornerShape(50))
+                .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent)
+                .then(
+                    if (isSelected) Modifier
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                            RoundedCornerShape(50)
+                        )
+                        .shadow(
+                            elevation = 15.dp,
+                            shape = RoundedCornerShape(50),
+                            ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                            spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
+                    else Modifier
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                contentDescription = stringResource(item.label),
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
 
         Text(
             text = stringResource(item.label),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = textStyle
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = fontWeight,
+                color = textColor
+            ),
         )
-        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
