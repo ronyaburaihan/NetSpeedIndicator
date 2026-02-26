@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -155,7 +156,7 @@ private fun HomeScreenContent(
 }
 
 @Composable
-fun GradientSpeedCard(uiState: HomeUiState) {
+private fun GradientSpeedCard(uiState: HomeUiState) {
     val totalSpeed = uiState.currentSpeed.totalBytesPerSecond
     val downloadSpeed = uiState.currentSpeed.downloadBytesPerSecond
     val uploadSpeed = uiState.currentSpeed.uploadBytesPerSecond
@@ -164,33 +165,10 @@ fun GradientSpeedCard(uiState: HomeUiState) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF2563EB), // blue-600
-                        Color(0xFF4F46E5)  // indigo-600
-                    )
-                )
-            )
+            .background(MaterialTheme.colorScheme.primary)
             .padding(20.dp)
     ) {
         // Decorative blurred circles
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(192.dp)
-                .padding(end = 40.dp, top = 40.dp) // manual offset equivalent
-                .blur(64.dp)
-                .background(Color.White.copy(alpha = 0.2f), CircleShape)
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .size(160.dp)
-                .padding(start = 40.dp, bottom = 40.dp)
-                .blur(64.dp)
-                .background(Color(0xFF6366F1).copy(alpha = 0.4f), CircleShape)
-        )
 
         Column {
             Row(
@@ -202,8 +180,12 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White.copy(alpha = 0.1f))
-                        .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            RoundedCornerShape(16.dp)
+                        )
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -211,9 +193,9 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                     BlinkingDot()
                     Text(
                         text = stringResource(R.string.live_session),
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         letterSpacing = 1.sp
                     )
                 }
@@ -233,7 +215,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                         text = stringResource(R.string.total_speed).uppercase(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFFDBEAFE).copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                         letterSpacing = 1.sp
                     )
                     Text(
@@ -242,7 +224,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                                 SpanStyle(
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
                                 append(FormatUtils.formatSpeedValue(totalSpeed))
@@ -252,7 +234,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                                 SpanStyle(
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.White.copy(alpha = 0.8f)
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                                 )
                             ) {
                                 append(FormatUtils.formatSpeedUnit(totalSpeed))
@@ -266,14 +248,18 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f))
-                        .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape),
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                            CircleShape
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Speed,
                         contentDescription = "Speed",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -293,7 +279,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                         Icon(
                             Icons.Default.ArrowDownward,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -306,7 +292,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
                         Icon(
                             Icons.Default.ArrowUpward,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -317,7 +303,7 @@ fun GradientSpeedCard(uiState: HomeUiState) {
 }
 
 @Composable
-fun GlassPanelStat(
+private fun GlassPanelStat(
     modifier: Modifier = Modifier,
     label: String,
     value: String,
@@ -326,8 +312,12 @@ fun GlassPanelStat(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.05f))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f),
+                RoundedCornerShape(12.dp)
+            )
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -336,7 +326,7 @@ fun GlassPanelStat(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.White.copy(alpha = 0.2f)),
+                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
             icon()
@@ -346,20 +336,22 @@ fun GlassPanelStat(
                 text = label,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
             )
             Text(
                 text = value,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
 }
 
 @Composable
-fun BlinkingDot() {
+private fun BlinkingDot(
+    color: Color = MaterialTheme.colorScheme.onPrimary
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "BlinkingDot")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -375,13 +367,13 @@ fun BlinkingDot() {
         modifier = Modifier
             .size(8.dp)
             .clip(CircleShape)
-            .background(Color(0xFF4ADE80)) // green-400
+            .background(color)
             .alpha(alpha)
     )
 }
 
 @Composable
-fun AudioWaveBars() {
+private fun AudioWaveBars() {
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.Bottom,
@@ -395,14 +387,14 @@ fun AudioWaveBars() {
                     .width(4.dp)
                     .fillMaxHeight(heightFraction)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.onPrimary)
             )
         }
     }
 }
 
 @Composable
-fun TotalUsageCard(uiState: HomeUiState) {
+private fun TotalUsageCard(uiState: HomeUiState) {
     val totalBytes = uiState.todayUsage.totalBytes
     val percentage =
         if (totalBytes > 0) 85f else 0f // mock static percentage from HTML design for now
@@ -412,7 +404,11 @@ fun TotalUsageCard(uiState: HomeUiState) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-            .border(1.dp, Color(0xFF60A5FA).copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                RoundedCornerShape(24.dp)
+            )
             .padding(24.dp)
     ) {
         Row(
@@ -428,10 +424,10 @@ fun TotalUsageCard(uiState: HomeUiState) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF3B82F6).copy(alpha = 0.1f)) // blue-500/10
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                             .border(
                                 1.dp,
-                                Color(0xFF3B82F6).copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                                 RoundedCornerShape(8.dp)
                             )
                             .padding(6.dp)
@@ -439,7 +435,7 @@ fun TotalUsageCard(uiState: HomeUiState) {
                         Icon(
                             imageVector = Icons.Default.DataUsage,
                             contentDescription = null,
-                            tint = Color(0xFF60A5FA), // blue-400
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -452,24 +448,35 @@ fun TotalUsageCard(uiState: HomeUiState) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
 
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = FormatUtils.formatBytesValue(totalBytes),
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = OutfitFontFamily,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = FormatUtils.formatBytesUnit(totalBytes),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF60A5FA)
-                    )
-                }
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = OutfitFontFamily,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        ) {
+                            append(FormatUtils.formatBytesValue(totalBytes))
+                        }
+                        append(" ")
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            append(FormatUtils.formatBytesUnit(totalBytes))
+                        }
+                    },
+                    fontFamily = OutfitFontFamily
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -477,7 +484,9 @@ fun TotalUsageCard(uiState: HomeUiState) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    BlinkingDot()
+                    BlinkingDot(
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Text(
                         text = stringResource(R.string.active_monitoring).uppercase(),
                         fontSize = 10.sp,
@@ -491,40 +500,30 @@ fun TotalUsageCard(uiState: HomeUiState) {
             // Conic gauge mock
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(112.dp)
+                modifier = Modifier.size(120.dp)
             ) {
                 // Outer track
-                Canvas(modifier = Modifier.size(112.dp)) {
-                    val strokeWidth = 10.dp.toPx()
-                    drawCircle(
-                        color = Color.Black.copy(alpha = 0.2f),
-                        style = Stroke(strokeWidth)
-                    )
-                    drawArc(
-                        brush = Brush.sweepGradient(
-                            colors = listOf(
-                                Color(0xFF3B82F6), // blue
-                                Color(0xFF10B981), // emerald
-                                Color(0xFF10B981)
-                            )
-                        ),
-                        startAngle = -90f,
-                        sweepAngle = percentage / 100f * 360f,
-                        useCenter = false,
-                        style = Stroke(strokeWidth, cap = StrokeCap.Round)
-                    )
-                }
+                CircularProgressIndicator(
+                    modifier = Modifier.size(120.dp),
+                    strokeWidth = 10.dp,
+                    progress = { 0.85f },
+                    strokeCap = StrokeCap.Butt,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                )
 
                 // Inner circle
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(85.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.background)
                         .border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
                             text = stringResource(R.string.today).uppercase(),
                             fontSize = 9.sp,
@@ -538,6 +537,13 @@ fun TotalUsageCard(uiState: HomeUiState) {
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
+                        Text(
+                            text = stringResource(R.string.wifi).uppercase(),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 1.sp
+                        )
                     }
                 }
             }
@@ -546,7 +552,7 @@ fun TotalUsageCard(uiState: HomeUiState) {
 }
 
 @Composable
-fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
+private fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
@@ -613,14 +619,14 @@ fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
 }
 
 @Composable
-fun WifiUsageCard(
+private fun WifiUsageCard(
     modifier: Modifier = Modifier,
     usage: Long
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFF6366F1).copy(alpha = 0.05f)) // indigo-500/5
+            .background(Color(0xFF6366F1).copy(alpha = 0.05f))
             .border(1.dp, Color(0xFF6366F1).copy(alpha = 0.1f), RoundedCornerShape(24.dp))
             .padding(20.dp)
             .height(120.dp)

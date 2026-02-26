@@ -1,5 +1,7 @@
 package com.englesoft.netspeedindicator.core.util
 
+import java.util.Locale
+import kotlin.math.ln
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -7,23 +9,29 @@ import kotlin.math.pow
  * Utility functions for formatting bytes and speeds
  */
 object FormatUtils {
-    
+
     /**
      * Format bytes to human-readable string
      * @param bytes Number of bytes
-     * @return Formatted string (e.g., "1.5 GB", "250 MB", "10 KB")
+     * @return Formatted string (e.g., "1.52 GB", "250.1 MB", "10 KB")
      */
     fun formatBytes(bytes: Long): String {
-        if (bytes < 0) return "0 B"
-        if (bytes < 1024) return "$bytes B"
-        
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
-        
+        if (bytes <= 0) return "0 B"
+
+        val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB")
+        // Calculate which unit group it belongs to: index = log1024(bytes)
+        val digitGroups = (ln(bytes.toDouble()) / ln(1024.0)).toInt()
+            .coerceAtMost(units.lastIndex)
+
         val value = bytes / 1024.0.pow(digitGroups.toDouble())
-        return String.format("%.1f %s", value, units[digitGroups])
+
+        return when (digitGroups) {
+            0, 1 -> "%.0f %s".format(Locale.US, value, units[digitGroups])
+            2 -> "%.1f %s".format(Locale.US, value, units[digitGroups])
+            else -> "%.2f %s".format(Locale.US, value, units[digitGroups])
+        }
     }
-    
+
     /**
      * Format speed (bytes per second) to human-readable string
      * @param bytesPerSecond Speed in bytes per second
@@ -32,14 +40,14 @@ object FormatUtils {
     fun formatSpeed(bytesPerSecond: Long): String {
         if (bytesPerSecond < 0) return "0 B/s"
         if (bytesPerSecond < 1024) return "$bytesPerSecond B/s"
-        
+
         val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
         val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
-        
+
         val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
-        return String.format("%.1f %s", value, units[digitGroups])
+        return String.format(Locale.US, "%.1f %s", value, units[digitGroups])
     }
-    
+
     /**
      * Format speed to Mbps
      * @param bytesPerSecond Speed in bytes per second
@@ -50,7 +58,7 @@ object FormatUtils {
         return if (mbps < 0.1) {
             "${(bytesPerSecond * 8) / 1000.0} Kbps"
         } else {
-            String.format("%.1f Mbps", mbps)
+            String.format(Locale.US, "%.1f Mbps", mbps)
         }
     }
 
@@ -62,30 +70,29 @@ object FormatUtils {
     fun formatSpeedCompact(bytesPerSecond: Long): Pair<String, String> {
         val value: Double
         val unit: String
-        
-        if (bytesPerSecond >= 1024 * 1024 * 1024) { // GB
-             value = bytesPerSecond / (1024.0 * 1024 * 1024)
-             unit = "GB"
-        } else if (bytesPerSecond >= 999 * 1024) { // Switch to MB at ~1000 KB to avoid 4 digits (e.g. 1023 KB)
-             value = bytesPerSecond / (1024.0 * 1024)
-             unit = "MB"
+
+        if (bytesPerSecond >= 1024 * 1024 * 1024) {
+            value = bytesPerSecond / (1024.0 * 1024 * 1024)
+            unit = "GB"
+        } else if (bytesPerSecond >= 999 * 1024) {
+            value = bytesPerSecond / (1024.0 * 1024)
+            unit = "MB"
         } else {
-             // KB (Default minimum unit)
-             value = bytesPerSecond / 1024.0
-             unit = "KB"
+            value = bytesPerSecond / 1024.0
+            unit = "KB"
         }
 
         val formattedValue = if (unit == "KB") {
-            String.format("%.0f", value) // Integer for KB
+            String.format(Locale.US, "%.0f", value) // Integer for KB
         } else {
-             // MB or GB: Show decimal if < 100, else integer to save space
-             if (value >= 99.95) {
-                String.format("%.0f", value)
+            // MB or GB: Show decimal if < 100, else integer to save space
+            if (value >= 99.95) {
+                String.format(Locale.US, "%.0f", value)
             } else {
-                String.format("%.1f", value)
+                String.format(Locale.US, "%.1f", value)
             }
         }
-        
+
         return Pair(formattedValue, "$unit/s")
     }
 
@@ -98,7 +105,7 @@ object FormatUtils {
 
         val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
         val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
-        return String.format("%.1f", value)
+        return String.format(Locale.US, "%.1f", value)
     }
 
     /**
@@ -117,24 +124,35 @@ object FormatUtils {
      * Format bytes - returns only the numeric value part
      */
     fun formatBytesValue(bytes: Long): String {
-        if (bytes < 0) return "0"
-        if (bytes < 1024) return "$bytes"
+        if (bytes <= 0L) return "0"
+        if (bytes < 1024) return bytes.toString()
 
         val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
         val value = bytes / 1024.0.pow(digitGroups.toDouble())
-        return String.format("%.1f", value)
+
+        return when (digitGroups) {
+            1 -> "%.0f".format(Locale.US, value)
+            2 -> "%.1f".format(Locale.US, value)
+            else -> "%.2f".format(Locale.US, value)
+        }
     }
 
     /**
      * Format bytes - returns only the unit part
      */
     fun formatBytesUnit(bytes: Long): String {
-        if (bytes < 0) return "B"
-        if (bytes < 1024) return "B"
+        if (bytes <= 0L) return "B"
 
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
-        return units[digitGroups]
+        val units = listOf("B", "KB", "MB", "GB", "TB")
+        var value = bytes.toDouble()
+        var index = 0
+
+        while (value >= 1024 && index < units.lastIndex) {
+            value /= 1024
+            index++
+        }
+
+        return units[index]
     }
 
     /**
@@ -144,6 +162,6 @@ object FormatUtils {
         val h = seconds / 3600
         val m = (seconds % 3600) / 60
         val s = seconds % 60
-        return String.format("%02d:%02d:%02d", h, m, s)
+        return String.format(Locale.US, "%02d:%02d:%02d", h, m, s)
     }
 }
