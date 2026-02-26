@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -139,13 +140,19 @@ private fun HomeScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    MobileUsageCard(
+                    UsageCard(
                         modifier = Modifier.weight(1f),
-                        usage = uiState.todayUsage.mobileTotalBytes
+                        usage = uiState.todayUsage.mobileTotalBytes,
+                        title = stringResource(R.string.mobile),
+                        icon = Icons.Default.SignalCellularAlt,
+                        accentColor = Color(0xFFF59E0B)
                     )
-                    WifiUsageCard(
+                    UsageCard(
                         modifier = Modifier.weight(1f),
-                        usage = uiState.todayUsage.wifiTotalBytes
+                        usage = uiState.todayUsage.wifiTotalBytes,
+                        title = stringResource(R.string.wifi),
+                        icon = Icons.Default.Wifi,
+                        accentColor = Color(0xFF6366F1)
                     )
                 }
             }
@@ -396,8 +403,17 @@ private fun AudioWaveBars() {
 @Composable
 private fun TotalUsageCard(uiState: HomeUiState) {
     val totalBytes = uiState.todayUsage.totalBytes
-    val percentage =
-        if (totalBytes > 0) 85f else 0f // mock static percentage from HTML design for now
+    val wifiBytes = uiState.todayUsage.wifiTotalBytes
+    val mobileBytes = uiState.todayUsage.mobileTotalBytes
+
+    val wifiPercentage = if (totalBytes > 0) (wifiBytes.toFloat() / totalBytes) * 100f else 0f
+    val mobilePercentage = if (totalBytes > 0) (mobileBytes.toFloat() / totalBytes) * 100f else 0f
+
+    val (maxTitle, maxPercentage) = if (wifiPercentage >= mobilePercentage) {
+        stringResource(R.string.wifi) to wifiPercentage
+    } else {
+        stringResource(R.string.mobile) to mobilePercentage
+    }
 
     Box(
         modifier = Modifier
@@ -506,8 +522,8 @@ private fun TotalUsageCard(uiState: HomeUiState) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(120.dp),
                     strokeWidth = 10.dp,
-                    progress = { 0.85f },
-                    strokeCap = StrokeCap.Butt,
+                    progress = { maxPercentage / 100f },
+                    strokeCap = StrokeCap.Round,
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
@@ -532,13 +548,13 @@ private fun TotalUsageCard(uiState: HomeUiState) {
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "${percentage.toInt()}%",
+                            text = "${maxPercentage.toInt()}%",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = stringResource(R.string.wifi).uppercase(),
+                            text = maxTitle.uppercase(),
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -552,93 +568,30 @@ private fun TotalUsageCard(uiState: HomeUiState) {
 }
 
 @Composable
-private fun MobileUsageCard(modifier: Modifier = Modifier, usage: Long) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFFF59E0B).copy(alpha = 0.05f)) // amber-500/5
-            .border(1.dp, Color(0xFFF59E0B).copy(alpha = 0.1f), RoundedCornerShape(24.dp))
-            .padding(20.dp)
-            .height(120.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.SignalCellularAlt,
-            contentDescription = null,
-            tint = Color(0xFFF59E0B).copy(alpha = 0.2f),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(48.dp)
-        )
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFF59E0B))
-                )
-                Text(
-                    text = stringResource(R.string.mobile),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    ) {
-                        append(FormatUtils.formatBytesValue(usage))
-                    }
-                    append(" ")
-                    withStyle(
-                        SpanStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        append(FormatUtils.formatBytesUnit(usage))
-                    }
-                },
-                fontFamily = OutfitFontFamily
-            )
-        }
-    }
-}
-
-@Composable
-private fun WifiUsageCard(
+fun UsageCard(
     modifier: Modifier = Modifier,
-    usage: Long
+    title: String,
+    usage: Long,
+    icon: ImageVector,
+    accentColor: Color
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFF6366F1).copy(alpha = 0.05f))
-            .border(1.dp, Color(0xFF6366F1).copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+            .background(accentColor.copy(alpha = 0.05f))
+            .border(1.dp, accentColor.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
             .padding(20.dp)
-            .height(120.dp)
+            .height(108.dp)
     ) {
         Icon(
-            imageVector = Icons.Default.Wifi,
+            imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFF6366F1).copy(alpha = 0.2f),
+            tint = accentColor.copy(alpha = 0.2f),
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .size(48.dp)
         )
+
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
@@ -651,20 +604,23 @@ private fun WifiUsageCard(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF6366F1))
+                        .background(accentColor)
                 )
+
                 Text(
-                    text = stringResource(R.string.wifi),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
             }
+
             Text(
                 text = buildAnnotatedString {
                     withStyle(
                         SpanStyle(
-                            fontSize = 24.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -674,7 +630,7 @@ private fun WifiUsageCard(
                     append(" ")
                     withStyle(
                         SpanStyle(
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
