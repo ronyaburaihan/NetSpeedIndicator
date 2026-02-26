@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -142,17 +144,37 @@ private fun HomeScreenContent(
                 ) {
                     UsageCard(
                         modifier = Modifier.weight(1f),
+                        usage = uiState.todayUsage.totalDownloadBytes,
+                        title = stringResource(R.string.download),
+                        icon = Icons.Default.Download,
+                        accentColor = Color(0xFF3B82F6) // Blue
+                    )
+                    UsageCard(
+                        modifier = Modifier.weight(1f),
+                        usage = uiState.todayUsage.totalUploadBytes,
+                        title = stringResource(R.string.upload),
+                        icon = Icons.Default.Upload,
+                        accentColor = Color(0xFF10B981) // Emerald
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    UsageCard(
+                        modifier = Modifier.weight(1f),
                         usage = uiState.todayUsage.mobileTotalBytes,
                         title = stringResource(R.string.mobile),
                         icon = Icons.Default.SignalCellularAlt,
-                        accentColor = Color(0xFFF59E0B)
+                        accentColor = Color(0xFFF59E0B) // Amber
                     )
                     UsageCard(
                         modifier = Modifier.weight(1f),
                         usage = uiState.todayUsage.wifiTotalBytes,
                         title = stringResource(R.string.wifi),
                         icon = Icons.Default.Wifi,
-                        accentColor = Color(0xFF6366F1)
+                        accentColor = Color(0xFF6366F1) // Indigo
                     )
                 }
             }
@@ -419,10 +441,10 @@ private fun TotalUsageCard(uiState: HomeUiState) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
             .border(
                 1.dp,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                 RoundedCornerShape(24.dp)
             )
             .padding(24.dp)
@@ -457,7 +479,7 @@ private fun TotalUsageCard(uiState: HomeUiState) {
                     }
                     Text(
                         text = stringResource(R.string.total_usage).uppercase(),
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
@@ -472,7 +494,7 @@ private fun TotalUsageCard(uiState: HomeUiState) {
                     text = buildAnnotatedString {
                         withStyle(
                             SpanStyle(
-                                fontSize = 48.sp,
+                                fontSize = 42.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = OutfitFontFamily,
                                 color = MaterialTheme.colorScheme.onBackground
@@ -523,7 +545,7 @@ private fun TotalUsageCard(uiState: HomeUiState) {
                     modifier = Modifier.size(120.dp),
                     strokeWidth = 10.dp,
                     progress = { maxPercentage / 100f },
-                    strokeCap = StrokeCap.Round,
+                    strokeCap = StrokeCap.Butt,
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
@@ -620,7 +642,7 @@ fun UsageCard(
                 text = buildAnnotatedString {
                     withStyle(
                         SpanStyle(
-                            fontSize = 32.sp,
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
