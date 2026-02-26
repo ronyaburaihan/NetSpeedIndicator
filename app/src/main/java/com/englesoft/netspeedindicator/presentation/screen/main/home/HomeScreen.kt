@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -30,10 +29,8 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.SignalCellularAlt
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
@@ -48,12 +45,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -65,6 +59,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.R
 import com.englesoft.netspeedindicator.core.util.FormatUtils
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
 import com.englesoft.netspeedindicator.presentation.theme.OutfitFontFamily
 import com.englesoft.netspeedindicator.presentation.theme.dimens
@@ -104,7 +100,9 @@ private fun HomeScreenContent(
                 .padding(horizontal = dimens.horizontalPadding),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            GradientSpeedCard(uiState = uiState)
+            CurrentSpeedCard(
+                currentSpeed = uiState.currentSpeed
+            )
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -136,7 +134,9 @@ private fun HomeScreenContent(
                     }
                 }
 
-                TotalUsageCard(uiState = uiState)
+                TotalUsageCard(
+                    todayUsage = uiState.todayUsage
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -185,10 +185,10 @@ private fun HomeScreenContent(
 }
 
 @Composable
-private fun GradientSpeedCard(uiState: HomeUiState) {
-    val totalSpeed = uiState.currentSpeed.totalBytesPerSecond
-    val downloadSpeed = uiState.currentSpeed.downloadBytesPerSecond
-    val uploadSpeed = uiState.currentSpeed.uploadBytesPerSecond
+private fun CurrentSpeedCard(currentSpeed: SpeedInfo) {
+    val totalSpeed = currentSpeed.totalBytesPerSecond
+    val downloadSpeed = currentSpeed.downloadBytesPerSecond
+    val uploadSpeed = currentSpeed.uploadBytesPerSecond
 
     Box(
         modifier = Modifier
@@ -197,8 +197,6 @@ private fun GradientSpeedCard(uiState: HomeUiState) {
             .background(MaterialTheme.colorScheme.primary)
             .padding(20.dp)
     ) {
-        // Decorative blurred circles
-
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -423,10 +421,12 @@ private fun AudioWaveBars() {
 }
 
 @Composable
-private fun TotalUsageCard(uiState: HomeUiState) {
-    val totalBytes = uiState.todayUsage.totalBytes
-    val wifiBytes = uiState.todayUsage.wifiTotalBytes
-    val mobileBytes = uiState.todayUsage.mobileTotalBytes
+private fun TotalUsageCard(
+    todayUsage: UsageInfo
+) {
+    val totalBytes = todayUsage.totalBytes
+    val wifiBytes = todayUsage.wifiTotalBytes
+    val mobileBytes = todayUsage.mobileTotalBytes
 
     val wifiPercentage = if (totalBytes > 0) (wifiBytes.toFloat() / totalBytes) * 100f else 0f
     val mobilePercentage = if (totalBytes > 0) (mobileBytes.toFloat() / totalBytes) * 100f else 0f
