@@ -185,7 +185,9 @@ private fun HomeScreenContent(
 }
 
 @Composable
-private fun CurrentSpeedCard(currentSpeed: SpeedInfo) {
+private fun CurrentSpeedCard(
+    currentSpeed: SpeedInfo
+) {
     val totalSpeed = currentSpeed.totalBytesPerSecond
     val downloadSpeed = currentSpeed.downloadBytesPerSecond
     val uploadSpeed = currentSpeed.uploadBytesPerSecond
@@ -425,16 +427,19 @@ private fun TotalUsageCard(
     todayUsage: UsageInfo
 ) {
     val totalBytes = todayUsage.totalBytes
-    val wifiBytes = todayUsage.wifiTotalBytes
-    val mobileBytes = todayUsage.mobileTotalBytes
+    val uploadBytes = todayUsage.totalUploadBytes
+    val downloadBytes = todayUsage.totalDownloadBytes
 
-    val wifiPercentage = if (totalBytes > 0) (wifiBytes.toFloat() / totalBytes) * 100f else 0f
-    val mobilePercentage = if (totalBytes > 0) (mobileBytes.toFloat() / totalBytes) * 100f else 0f
 
-    val (maxTitle, maxPercentage) = if (wifiPercentage >= mobilePercentage) {
-        stringResource(R.string.wifi) to wifiPercentage
+    val uploadPercentage = if (totalBytes > 0) (uploadBytes.toFloat() / totalBytes) * 100f else 0f
+    val downloadPercentage = if (totalBytes > 0) (downloadBytes.toFloat() / totalBytes) * 100f else 0f
+
+
+
+    val (maxTitle, maxPercentage) = if (uploadPercentage >= downloadPercentage) {
+        stringResource(R.string.upload) to uploadPercentage
     } else {
-        stringResource(R.string.mobile) to mobilePercentage
+        stringResource(R.string.download) to downloadPercentage
     }
 
     Box(
