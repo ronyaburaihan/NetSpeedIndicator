@@ -430,11 +430,9 @@ private fun TotalUsageCard(
     val uploadBytes = todayUsage.totalUploadBytes
     val downloadBytes = todayUsage.totalDownloadBytes
 
-
     val uploadPercentage = if (totalBytes > 0) (uploadBytes.toFloat() / totalBytes) * 100f else 0f
-    val downloadPercentage = if (totalBytes > 0) (downloadBytes.toFloat() / totalBytes) * 100f else 0f
-
-
+    val downloadPercentage =
+        if (totalBytes > 0) (downloadBytes.toFloat() / totalBytes) * 100f else 0f
 
     val (maxTitle, maxPercentage) = if (uploadPercentage >= downloadPercentage) {
         stringResource(R.string.upload) to uploadPercentage
