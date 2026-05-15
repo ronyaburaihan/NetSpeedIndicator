@@ -28,12 +28,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.SignalCellularAlt
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +54,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -62,6 +63,8 @@ import com.englesoft.netspeedindicator.core.util.FormatUtils
 import com.englesoft.netspeedindicator.domain.model.SpeedInfo
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
+import com.englesoft.netspeedindicator.presentation.component.StopMonitoringDialog
+import com.englesoft.netspeedindicator.presentation.theme.NetSpeedIndicatorTheme
 import com.englesoft.netspeedindicator.presentation.theme.OutfitFontFamily
 import com.englesoft.netspeedindicator.presentation.theme.dimens
 
@@ -70,15 +73,39 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    // Handle activity finish
+    androidx.compose.runtime.LaunchedEffect(uiState.shouldFinishActivity) {
+        if (uiState.shouldFinishActivity) {
+            (context as? android.app.Activity)?.finishAffinity()
+            viewModel.onActivityFinished()
+        }
+    }
 
-    HomeScreenContent(uiState = uiState)
+    HomeScreenContent(
+        uiState = uiState,
+        onStopClick = viewModel::showStopDialog,
+        onDismissDialog = viewModel::hideStopDialog,
+        onConfirmStop = viewModel::stopService
+    )
 }
 
 @Composable
 private fun HomeScreenContent(
-    uiState: HomeUiState
+    uiState: HomeUiState,
+    onStopClick: () -> Unit = {},
+    onDismissDialog: () -> Unit = {},
+    onConfirmStop: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
+
+    if (uiState.showStopDialog) {
+        StopMonitoringDialog(
+            onDismiss = onDismissDialog,
+            onConfirm = onConfirmStop
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -87,7 +114,7 @@ private fun HomeScreenContent(
                 subTitle = stringResource(R.string.real_time_monitor),
                 showTrailingIcon = true,
                 trailingIcon = Icons.Default.PowerSettingsNew,
-                onTrailingIconClick = { /* Handle stop */ }
+                onTrailingIconClick = onStopClick
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -666,5 +693,18 @@ fun UsageCard(
                 fontFamily = OutfitFontFamily
             )
         }
+    }
+}
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    NetSpeedIndicatorTheme {
+        HomeScreenContent(
+            uiState = HomeUiState(),
+            onStopClick = {},
+            onDismissDialog = {},
+            onConfirmStop = {}
+        )
     }
 }

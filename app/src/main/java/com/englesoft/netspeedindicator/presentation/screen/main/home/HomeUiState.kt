@@ -11,4 +11,6 @@ data class HomeUiState(
     val sessionDurationSeconds: Long = 0L,
     val isLoading: Boolean = false,
     val message: String? = null,
+    val showStopDialog: Boolean = false,
+    val shouldFinishActivity: Boolean = false
 )

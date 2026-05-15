@@ -54,4 +54,9 @@
     <string name="month_summary">Month Summary</string>
     <string name="total">Total</string>
     <string name="date">Date</string>
+
+    <string name="stop_monitoring">Stop Monitoring?</string>
+    <string name="stop_monitoring_desc">Stopping the service will disable real-time speed tracking and remove the notification bar indicator.</string>
+    <string name="cancel">Cancel</string>
+    <string name="stop_service">Stop Service</string>
 </resources>
