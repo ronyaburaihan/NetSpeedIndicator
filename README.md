@@ -233,7 +233,7 @@ sealed class Result<out T> {
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/netspeed-indicator.git
+   git clone https://github.com/ronyaburaihan/NetSpeedIndicator.git
    cd netspeed-indicator
    ```
 
@@ -419,32 +419,7 @@ Contributions are welcome! Please follow these guidelines:
 
 ## 🐛 Known Issues
 
-Currently, there are no known critical issues. For minor issues and feature requests, please check the [Issues](https://github.com/yourusername/netspeed-indicator/issues) page.
-
----
-
-## 🗺️ Roadmap
-
-### Version 1.1 (Planned)
-- [ ] Widget support for home screen
-- [ ] Export usage data (CSV/JSON)
-- [ ] Usage alerts and notifications
-- [ ] Network speed history graphs
-- [ ] Per-app data usage tracking
-
-### Version 1.2 (Future)
-- [ ] Cloud backup and sync
-- [ ] Multi-device support
-- [ ] Advanced analytics dashboard
-- [ ] Custom themes and colors
-- [ ] Localization (multiple languages)
-
-### Version 2.0 (Long-term)
-- [ ] Speed test integration
-- [ ] Network diagnostics tools
-- [ ] VPN support
-- [ ] Data usage predictions
-- [ ] Machine learning insights
+Currently, there are no known critical issues. For minor issues and feature requests, please check the [Issues](https://github.com/ronyaburaihan/NetSpeedIndicator/issues) page.
 
 ---
 
@@ -521,8 +496,7 @@ If you find this project helpful, please consider:
 ## 📞 Contact & Support
 
 ### Get Help
-- 💬 [Discussions](https://github.com/yourusername/netspeed-indicator/discussions)
-- 🐛 [Issue Tracker](https://github.com/yourusername/netspeed-indicator/issues)
+- 🐛 [Issue Tracker](https://github.com/ronyaburaihan/NetSpeedIndicator/issues)
 - 📧 Email: ronyaburaihan@gmail.com
 
 ### Stay Updated
@@ -534,12 +508,12 @@ If you find this project helpful, please consider:
 
 ## 📈 Project Stats
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/netspeed-indicator?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/netspeed-indicator?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/yourusername/netspeed-indicator?style=social)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/netspeed-indicator)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/netspeed-indicator)
-![GitHub last commit](https://img.shields.io/github/last-commit/yourusername/netspeed-indicator)
+![GitHub stars](https://img.shields.io/github/stars/ronyaburaihan/NetSpeedIndicator?style=social)
+![GitHub forks](https://img.shields.io/github/forks/ronyaburaihan/NetSpeedIndicator?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/ronyaburaihan/NetSpeedIndicator?style=social)
+![GitHub issues](https://img.shields.io/github/issues/ronyaburaihan/NetSpeedIndicator)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/ronyaburaihan/NetSpeedIndicator)
+![GitHub last commit](https://img.shields.io/github/last-commit/ronyaburaihan/NetSpeedIndicator)
 
 ---
 
