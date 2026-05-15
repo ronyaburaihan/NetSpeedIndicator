@@ -87,7 +87,7 @@ NetSpeed Indicator is a powerful Android application that provides real-time net
 
 | Dashboard                               | History                             | Settings                              |
 |-----------------------------------------|-------------------------------------|---------------------------------------|
-| ![Dashboard](screenshots/dashboard.png) | ![History](screenshots/history.png) | ![Settings](screenshots/settings.png) |
+| <img src="screenshots/dashboard.png" width="310"/> | <img src="screenshots/history.png" width="310"/> | <img src="screenshots/settings.png" width="310"/>  |
 
 *Beautiful Material Design 3 UI with dynamic theming*
 
