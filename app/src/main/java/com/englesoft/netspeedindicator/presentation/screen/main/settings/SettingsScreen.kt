@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -27,16 +25,12 @@ import androidx.compose.material.icons.filled.LockClock
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RocketLaunch
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,13 +39,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -151,8 +145,8 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.setDynamicColor(it) })
                         }
                     )
-                    Divider(
-                        color = Color.White.copy(alpha = 0.05f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     GlassPanelItem(
@@ -199,8 +193,8 @@ fun SettingsScreen(
                             )
                         }
                     )
-                    Divider(
-                        color = Color.White.copy(alpha = 0.05f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     GlassPanelItem(
@@ -215,8 +209,8 @@ fun SettingsScreen(
                                 onCheckedChange = { viewModel.setLockScreenNotification(it) })
                         }
                     )
-                    Divider(
-                        color = Color.White.copy(alpha = 0.05f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     GlassPanelItem(
@@ -236,7 +230,7 @@ fun SettingsScreen(
                 // System Section
                 SettingsSection(title = stringResource(R.string.system)) {
                     GlassPanelItem(
-                        icon = androidx.compose.material.icons.Icons.Default.Info, // Used as fallback for security as Security icon name may clash
+                        icon = Icons.Default.Info, // Used as fallback for security as Security icon name may clash
                         iconTint = Color(0xFF22D3EE), // cyan-400
                         iconBgColor = Color(0xFF06B6D4).copy(alpha = 0.2f),
                         title = stringResource(R.string.usage_access),
@@ -274,8 +268,8 @@ fun SettingsScreen(
                             }
                         }
                     )
-                    Divider(
-                        color = Color.White.copy(alpha = 0.05f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     GlassPanelItem(
@@ -292,8 +286,8 @@ fun SettingsScreen(
                         }
                     )
                     if (isAutoStartAvailable) {
-                        Divider(
-                            color = Color.White.copy(alpha = 0.05f),
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                         GlassPanelItem(
@@ -309,43 +303,6 @@ fun SettingsScreen(
                         )
                     }
                 }
-
-                // About Card
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White.copy(alpha = 0.03f))
-                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
-                ) {
-                    GlassPanelItem(
-                        icon = Icons.Default.Info,
-                        iconTint = Color(0xFFCBD5E1), // slate-300
-                        iconBgColor = Color(0xFF64748B).copy(alpha = 0.2f),
-                        title = stringResource(R.string.about),
-                        subtitle = stringResource(R.string.version_text),
-                        trailingContent = {
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    )
-                }
-
-                // Footer
-                Text(
-                    text = "Designed with \u2764\uFE0F for SpeedMonitor\nBuild 2023.10.25",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 40.dp)
-                )
-
-                Spacer(modifier = Modifier.height(60.dp)) // bottom nav space
             }
         }
     }
@@ -353,7 +310,9 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsSection(title: String, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Text(
             text = title.uppercase(),
             fontSize = 12.sp,
@@ -367,7 +326,11 @@ fun SettingsSection(title: String, content: @Composable () -> Unit) {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f))
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    RoundedCornerShape(24.dp)
+                )
                 .padding(4.dp)
         ) {
             Column {
@@ -433,17 +396,14 @@ fun GlassPanelItem(
 }
 
 @Composable
-fun CustomSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun CustomSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
     Switch(
+        modifier = Modifier.scale(0.8f),
         checked = checked,
-        onCheckedChange = onCheckedChange,
-        colors = SwitchDefaults.colors(
-            checkedThumbColor = Color.White,
-            checkedTrackColor = Color(0xFF6366F1), // indigo-500
-            uncheckedThumbColor = Color(0xFF94A3B8), // slate-400
-            uncheckedTrackColor = Color(0xFF334155), // slate-700
-            uncheckedBorderColor = Color.Transparent
-        )
+        onCheckedChange = onCheckedChange
     )
 }
 

@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -156,7 +155,7 @@ fun HistoryScreen(
                         .weight(1f)
                         .clip(RoundedCornerShape(24.dp))
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
-                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -192,7 +191,7 @@ fun HistoryScreen(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.background.copy(alpha = 0.95f))
-                    .border(1.dp, Color.White.copy(alpha = 0.1f))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
             ) {
                 Column(
                     modifier = Modifier
@@ -270,7 +269,7 @@ fun HistoryScreen(
                             modifier = Modifier
                                 .width(1.dp)
                                 .height(40.dp)
-                                .background(Color.White.copy(alpha = 0.1f))
+                                .background(MaterialTheme.colorScheme.outlineVariant)
                                 .padding(horizontal = 12.dp)
                         )
 
@@ -282,7 +281,7 @@ fun HistoryScreen(
                                     Icon(
                                         imageVector = Icons.Default.SignalCellularAlt,
                                         contentDescription = null,
-                                        tint = Color(0xFFF59E0B), // amber-500
+                                        tint = MaterialTheme.colorScheme.secondary,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -308,7 +307,7 @@ fun HistoryScreen(
                                     Icon(
                                         imageVector = Icons.Default.Wifi,
                                         contentDescription = null,
-                                        tint = Color(0xFF6366F1), // indigo-500
+                                        tint = MaterialTheme.colorScheme.tertiary,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -346,7 +345,7 @@ fun SegmentedButton(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (isSelected) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
+                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
             )
             .clickable { onClick() }
             .padding(vertical = 6.dp),
@@ -356,7 +355,7 @@ fun SegmentedButton(
             text = text,
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -478,7 +477,7 @@ fun UsageRow(usage: UsageInfo) {
         val (mobVal, mobUnit) = formatDataParts(usage.mobileTotalBytes)
         Text(
             text = "$mobVal $mobUnit",
-            color = MaterialTheme.colorScheme.outline,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 14.sp,
             textAlign = TextAlign.End,
             modifier = Modifier.weight(1f)
@@ -488,7 +487,7 @@ fun UsageRow(usage: UsageInfo) {
         val (wifiVal, wifiUnit) = formatDataParts(usage.wifiTotalBytes)
         Text(
             text = "$wifiVal $wifiUnit",
-            color = MaterialTheme.colorScheme.outline,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 14.sp,
             textAlign = TextAlign.End,
             modifier = Modifier.weight(1f)
@@ -509,7 +508,7 @@ fun UsageRow(usage: UsageInfo) {
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 24.dp),
         thickness = 1.dp,
-        color = Color.White.copy(alpha = 0.05f)
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
     )
 }
 

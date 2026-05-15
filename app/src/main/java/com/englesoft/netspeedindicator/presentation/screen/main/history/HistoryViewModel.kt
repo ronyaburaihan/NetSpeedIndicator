@@ -68,7 +68,7 @@ class HistoryViewModel @Inject constructor(
     private fun observeRealtimeUsage() {
         viewModelScope.launch {
             trafficStateManager.dailyUsage.collect { liveUsage ->
-                if (liveUsage != null && _selectedMonthIndex.value == 0) {
+                if (_selectedMonthIndex.value == 0) {
                     // Update the "Today" entry in the current list ONLY if viewing Current Month
                     val currentList = _dailyUsage.value.toMutableList()
                     val todayStr = liveUsage.date
@@ -132,13 +132,11 @@ class HistoryViewModel @Inject constructor(
                 // Only sync realtime for current month
                 if (monthOffset == 0) {
                     val liveUsage = trafficStateManager.dailyUsage.value
-                    if (liveUsage != null) {
-                        val currentList = fullList.toMutableList()
-                        val index = currentList.indexOfFirst { it.date == liveUsage.date }
-                        if (index != -1) {
-                            currentList[index] = liveUsage
-                            _dailyUsage.value = currentList
-                        }
+                    val currentList = fullList.toMutableList()
+                    val index = currentList.indexOfFirst { it.date == liveUsage.date }
+                    if (index != -1) {
+                        currentList[index] = liveUsage
+                        _dailyUsage.value = currentList
                     }
                 }
             } catch (e: Exception) {
