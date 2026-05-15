@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -70,6 +71,9 @@ dependencies {
     
     // Navigation
     implementation(libs.navigation.compose)
+    
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
     
     // Lifecycle
     implementation(libs.lifecycle.viewmodel.compose)

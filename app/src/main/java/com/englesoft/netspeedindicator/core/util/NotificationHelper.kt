@@ -14,7 +14,7 @@ import android.graphics.Typeface
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
-import com.englesoft.netspeedindicator.core.MainActivity
+import com.englesoft.netspeedindicator.presentation.app.MainActivity
 
 /**
  * Helper class for creating and managing notifications
@@ -55,7 +55,7 @@ object NotificationHelper {
 
     /**
      * Build notification for speed monitoring
-     * @param speed Current speed text (e.g., "29 KB/s")
+     * @param downloadSpeed Current download speed text (e.g., "29 KB/s")
      * @param uploadSpeed Current upload speed text (e.g. "10 KB/s") - Optional
      * @param mobileUsage Mobile data usage text (e.g., "57.7 MB")
      * @param wifiUsage WiFi data usage text (e.g., "1.35 GB")
@@ -65,8 +65,9 @@ object NotificationHelper {
      */
     fun buildNotification(
         context: Context,
-        speed: String,
+        downloadSpeed: String,
         uploadSpeed: String? = null,
+        totalSpeed: String,
         mobileUsage: String,
         wifiUsage: String,
         signal: String,
@@ -86,10 +87,10 @@ object NotificationHelper {
 
         val titleText = buildString {
             if (uploadSpeed != null) {
-                append("Down: $speed")
+                append("Down: $downloadSpeed")
                 append("   Up: $uploadSpeed")
             } else {
-                append("Speed: $speed")
+                append("Speed: $totalSpeed")
             }
 
             if (signal.isNotEmpty()) {

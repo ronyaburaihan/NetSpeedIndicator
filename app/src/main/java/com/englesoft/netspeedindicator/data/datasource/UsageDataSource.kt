@@ -5,7 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.ZoneId
@@ -35,7 +35,7 @@ class UsageDataSource @Inject constructor(
      * @param date Format: yyyy-MM-dd
      * @return UsageModel or null if permission missing/error
      */
-    fun getUsageForDate(date: String): UsageModel? {
+    fun getUsageForDate(date: String): UsageInfo? {
         val localDate = LocalDate.parse(date)
         val startOfDay = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
         val endOfDay = localDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -46,7 +46,7 @@ class UsageDataSource @Inject constructor(
     /**
      * Get usage for a time period
      */
-    private fun getUsageForPeriod(dateStr: String, startMillis: Long, endMillis: Long): UsageModel? {
+    private fun getUsageForPeriod(dateStr: String, startMillis: Long, endMillis: Long): UsageInfo? {
         val statsManager = networkStatsManager
         
         if (statsManager == null) {
@@ -84,7 +84,7 @@ class UsageDataSource @Inject constructor(
             val mobileRx = mobileSummary?.rxBytes ?: 0L
             val mobileTx = mobileSummary?.txBytes ?: 0L
             
-            return UsageModel(
+            return UsageInfo(
                 date = dateStr,
                 wifiRxBytes = wifiRx,
                 wifiTxBytes = wifiTx,

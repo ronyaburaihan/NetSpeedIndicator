@@ -1,4 +1,4 @@
-package com.englesoft.netspeedindicator.presentation.viewmodel
+package com.englesoft.netspeedindicator.presentation.screen.main.settings
 
 import android.app.Application
 import android.content.Context
@@ -7,9 +7,9 @@ import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.core.util.AutoStartPermissionUtils
 import com.englesoft.netspeedindicator.core.util.PermissionUtils
-import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-
+import androidx.core.net.toUri
 
 /**
  * ViewModel for Settings screen
@@ -29,43 +29,45 @@ class SettingsViewModel @Inject constructor(
     private val application: Application,
     private val preferenceManager: PreferenceManager
 ) : AndroidViewModel(application) {
-    
+
     val appTheme = preferenceManager.appTheme
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), 0)
 
     val dynamicColor = preferenceManager.dynamicColor
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), true)
 
     val lockScreenNotification = preferenceManager.lockScreenNotification
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), true)
 
     val showUploadSpeed = preferenceManager.showUploadSpeed
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-    
+        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), false)
+
     private val _hasUsagePermission = MutableStateFlow(false)
     val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
 
     private val _isBatteryOptimizationDisabled = MutableStateFlow(false)
-    val isBatteryOptimizationDisabled: StateFlow<Boolean> = _isBatteryOptimizationDisabled.asStateFlow()
+    val isBatteryOptimizationDisabled: StateFlow<Boolean> =
+        _isBatteryOptimizationDisabled.asStateFlow()
 
     private val _isAutoStartAvailable = MutableStateFlow(false)
     val isAutoStartAvailable: StateFlow<Boolean> = _isAutoStartAvailable.asStateFlow()
-    
+
     init {
         checkPermissions()
     }
-    
+
     fun checkPermissions() {
         _hasUsagePermission.value = PermissionUtils.hasUsageStatsPermission(application)
         _isBatteryOptimizationDisabled.value = checkBatteryOptimization()
-        _isAutoStartAvailable.value = AutoStartPermissionUtils.isAutoStartPermissionAvailable(application)
+        _isAutoStartAvailable.value =
+            AutoStartPermissionUtils.isAutoStartPermissionAvailable(application)
     }
 
     private fun checkBatteryOptimization(): Boolean {
         val powerManager = application.getSystemService(Context.POWER_SERVICE) as PowerManager
         return powerManager.isIgnoringBatteryOptimizations(application.packageName)
     }
-    
+
     fun setAppTheme(theme: Int) {
         preferenceManager.setAppTheme(theme)
     }
@@ -90,14 +92,14 @@ class SettingsViewModel @Inject constructor(
         try {
             val intent = Intent().apply {
                 action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                data = Uri.parse("package:${application.packageName}")
+                data = "package:${application.packageName}".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             application.startActivity(intent)
         } catch (e: Exception) {
             // Fallback to generic settings if direct request fails
             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             application.startActivity(intent)
         }

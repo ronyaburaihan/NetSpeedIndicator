@@ -1,6 +1,6 @@
 package com.englesoft.netspeedindicator.domain.usecase
 
-import com.englesoft.netspeedindicator.domain.model.SpeedModel
+import com.englesoft.netspeedindicator.domain.model.SpeedInfo
 import com.englesoft.netspeedindicator.domain.repository.SpeedRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -12,7 +12,7 @@ import javax.inject.Inject
 class GetCurrentSpeedUseCase @Inject constructor(
     private val speedRepository: SpeedRepository
 ) {
-    operator fun invoke(): Flow<SpeedModel> {
+    operator fun invoke(): Flow<SpeedInfo> {
         return speedRepository.observeSpeed()
     }
 }

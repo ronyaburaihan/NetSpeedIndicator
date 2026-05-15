@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
@@ -18,7 +17,7 @@ import android.os.SystemClock
 import androidx.core.app.ServiceCompat
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.usecase.GetCurrentSpeedUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.SaveUsageUseCase
@@ -74,7 +73,7 @@ class SpeedMonitorService : Service() {
     private var sessionMobileTxBytes = 0L
 
     // Base usage loaded from DB
-    private var baseUsage: UsageModel? = null
+    private var baseUsage: UsageInfo? = null
 
     // System Services
     private lateinit var notificationManager: NotificationManager
@@ -106,10 +105,11 @@ class SpeedMonitorService : Service() {
             this,
             "0 B/s",
             null,
+            "0 B/s",
             "0 B",
             "0 B",
-            "0 B",
-            "--%"
+            "",
+            ""
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -165,7 +165,7 @@ class SpeedMonitorService : Service() {
 
                     // 3. Create Live Usage Model
                     // Base + Session
-                    val liveUsage = UsageModel(
+                    val liveUsage = UsageInfo(
                         date = baseUsage?.date ?: LocalDate.now()
                             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                         wifiRxBytes = (baseUsage?.wifiRxBytes ?: 0L) + sessionWifiRxBytes,
@@ -178,7 +178,8 @@ class SpeedMonitorService : Service() {
                     trafficStateManager.updateDailyUsage(liveUsage)
 
                     // 5. Format strings for Notification
-                    val downloadSpeed = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
+                    val totalSpeedStr = FormatUtils.formatSpeed(speed.totalBytesPerSecond)
+                    val downloadSpeedStr = FormatUtils.formatSpeed(speed.downloadBytesPerSecond)
                     val uploadSpeedStr =
                         if (showUploadSpeed) FormatUtils.formatSpeed(speed.uploadBytesPerSecond) else null
 
@@ -189,15 +190,16 @@ class SpeedMonitorService : Service() {
                     val wifiUsageStr = FormatUtils.formatBytes(wifiUsageTotal)
 
                     // Format for Status Bar Icon (Compact)
-                    val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.downloadBytesPerSecond)
+                    val (speedValue, speedUnit) = FormatUtils.formatSpeedCompact(speed.totalBytesPerSecond)
 
                     val signalStrength = getSignalStrength()
 
                     // 6. Update Notification (Use notify, NOT startForeground repeatedly)
                     val notification = NotificationHelper.buildNotification(
                         this@SpeedMonitorService,
-                        downloadSpeed,
+                        downloadSpeedStr,
                         uploadSpeedStr,
+                        totalSpeedStr,
                         mobileUsageStr,
                         wifiUsageStr,
                         signalStrength,
@@ -221,7 +223,7 @@ class SpeedMonitorService : Service() {
 
     private suspend fun loadTodayUsage() {
         val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        baseUsage = getDailyUsageUseCase.getByDate(todayStr) ?: UsageModel(
+        baseUsage = getDailyUsageUseCase.getByDate(todayStr) ?: UsageInfo(
             date = todayStr,
             wifiRxBytes = 0, wifiTxBytes = 0, mobileRxBytes = 0, mobileTxBytes = 0
         )
@@ -240,7 +242,7 @@ class SpeedMonitorService : Service() {
 
         // Create current total model (Base + Session)
         // We do NOT reset session counters here to avoid race conditions with the collector
-        val currentTotalUsage = UsageModel(
+        val currentTotalUsage = UsageInfo(
             date = currentBase.date,
             wifiRxBytes = currentBase.wifiRxBytes + sessionWifiRxBytes,
             wifiTxBytes = currentBase.wifiTxBytes + sessionWifiTxBytes,

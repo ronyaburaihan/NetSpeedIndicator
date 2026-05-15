@@ -4,7 +4,7 @@ import com.englesoft.netspeedindicator.data.datasource.UsageDataSource
 import com.englesoft.netspeedindicator.data.local.dao.UsageDao
 import com.englesoft.netspeedindicator.data.mapper.toDomain
 import com.englesoft.netspeedindicator.data.mapper.toEntity
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.repository.UsageRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -25,11 +25,11 @@ class UsageRepositoryImpl @Inject constructor(
     
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     
-    override suspend fun saveUsage(usage: UsageModel) {
+    override suspend fun saveUsage(usage: UsageInfo) {
         usageDao.insertOrUpdate(usage.toEntity())
     }
     
-    override suspend fun getTodayUsage(): UsageModel? {
+    override suspend fun getTodayUsage(): UsageInfo? {
         val today = LocalDate.now().format(dateFormatter)
         
         // Try to get accurate data from NetworkStatsManager first
@@ -44,7 +44,7 @@ class UsageRepositoryImpl @Inject constructor(
         return usageDao.getByDate(today)?.toDomain()
     }
     
-    override suspend fun getUsageByDate(date: String): UsageModel? {
+    override suspend fun getUsageByDate(date: String): UsageInfo? {
         // Try to get accurate data from NetworkStatsManager first
         val systemUsage = usageDataSource.getUsageForDate(date)
         if (systemUsage != null) {
@@ -56,7 +56,7 @@ class UsageRepositoryImpl @Inject constructor(
         return usageDao.getByDate(date)?.toDomain()
     }
     
-    override suspend fun getUsageByDateRange(startDate: String, endDate: String): List<UsageModel> {
+    override suspend fun getUsageByDateRange(startDate: String, endDate: String): List<UsageInfo> {
         // Sync history with system data
         val start = LocalDate.parse(startDate, dateFormatter)
         val end = LocalDate.parse(endDate, dateFormatter)
@@ -75,12 +75,12 @@ class UsageRepositoryImpl @Inject constructor(
         return usageDao.getByDateRange(startDate, endDate).map { it.toDomain() }
     }
     
-    override fun observeTodayUsage(): Flow<UsageModel?> {
+    override fun observeTodayUsage(): Flow<UsageInfo?> {
         val today = LocalDate.now().format(dateFormatter)
         return usageDao.observeByDate(today).map { it?.toDomain() }
     }
     
-    override suspend fun getMonthlyUsage(yearMonth: String): List<UsageModel> {
+    override suspend fun getMonthlyUsage(yearMonth: String): List<UsageInfo> {
         // Sync monthly data with system
         val yearMonthObj = java.time.YearMonth.parse(yearMonth)
         val startDate = yearMonthObj.atDay(1)

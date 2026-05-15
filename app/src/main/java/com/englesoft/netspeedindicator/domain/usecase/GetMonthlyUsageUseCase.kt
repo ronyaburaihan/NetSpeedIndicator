@@ -1,6 +1,6 @@
 package com.englesoft.netspeedindicator.domain.usecase
 
-import com.englesoft.netspeedindicator.domain.model.UsageModel
+import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.repository.UsageRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -16,7 +16,7 @@ class GetMonthlyUsageUseCase @Inject constructor(
     /**
      * Get usage for current month
      */
-    suspend fun getCurrentMonth(): List<UsageModel> {
+    suspend fun getCurrentMonth(): List<UsageInfo> {
         val yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
         return usageRepository.getMonthlyUsage(yearMonth)
     }
@@ -25,14 +25,14 @@ class GetMonthlyUsageUseCase @Inject constructor(
      * Get usage for a specific month
      * @param yearMonth Format: yyyy-MM (e.g., "2024-01")
      */
-    suspend fun getByMonth(yearMonth: String): List<UsageModel> {
+    suspend fun getByMonth(yearMonth: String): List<UsageInfo> {
         return usageRepository.getMonthlyUsage(yearMonth)
     }
     
     /**
      * Get total usage for current month
      */
-    suspend fun getCurrentMonthTotal(): UsageModel {
+    suspend fun getCurrentMonthTotal(): UsageInfo {
         val monthlyData = getCurrentMonth()
         return aggregateUsage(monthlyData)
     }
@@ -40,13 +40,13 @@ class GetMonthlyUsageUseCase @Inject constructor(
     /**
      * Aggregate multiple usage records into a single total
      */
-    private fun aggregateUsage(usageList: List<UsageModel>): UsageModel {
+    private fun aggregateUsage(usageList: List<UsageInfo>): UsageInfo {
         if (usageList.isEmpty()) {
             val currentMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
-            return UsageModel(date = "$currentMonth-01")
+            return UsageInfo(date = "$currentMonth-01")
         }
         
-        return UsageModel(
+        return UsageInfo(
             date = usageList.first().date,
             wifiRxBytes = usageList.sumOf { it.wifiRxBytes },
             wifiTxBytes = usageList.sumOf { it.wifiTxBytes },
