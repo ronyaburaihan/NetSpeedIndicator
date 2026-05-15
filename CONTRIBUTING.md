@@ -86,8 +86,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/yourusername/netspeed-indicator.git
-   cd netspeed-indicator
+   git clone https://github.com/ronyaburaihan/NetSpeedIndicator.git
+   cd NetSpeedIndicator
    ```
 
 2. **Open in Android Studio**
@@ -499,7 +499,7 @@ fun testDatabaseOperations() = runTest {
 
 ## 💬 Questions?
 
-- Open a [Discussion](https://github.com/yourusername/netspeed-indicator/discussions)
+- Open an [Issue](https://github.com/ronyaburaihan/NetSpeedIndicator/issues)
 - Email: ronyaburaihan@gmail.com
 
 ## 🙏 Thank You!

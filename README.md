@@ -234,7 +234,7 @@ sealed class Result<out T> {
 1. **Clone the repository**
    ```bash
    git clone https://github.com/ronyaburaihan/NetSpeedIndicator.git
-   cd netspeed-indicator
+   cd NetSpeedIndicator
    ```
 
 2. **Open in Android Studio**
