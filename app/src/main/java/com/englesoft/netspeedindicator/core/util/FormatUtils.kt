@@ -41,8 +41,9 @@ object FormatUtils {
         if (bytesPerSecond < 0) return "0 B/s"
         if (bytesPerSecond < 1024) return "$bytesPerSecond B/s"
 
-        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
+        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s", "TB/s")
         val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
+            .coerceAtMost(units.lastIndex)
 
         val value = bytesPerSecond / 1024.0.pow(digitGroups.toDouble())
         return String.format(Locale.US, "%.1f %s", value, units[digitGroups])
@@ -57,10 +58,10 @@ object FormatUtils {
         val value: Double
         val unit: String
 
-        if (bytesPerSecond >= 1024 * 1024 * 1024) {
+        if (bytesPerSecond >= 1024.0 * 1024 * 1024 * 0.9995) {
             value = bytesPerSecond / (1024.0 * 1024 * 1024)
             unit = "GB"
-        } else if (bytesPerSecond >= 999 * 1024) {
+        } else if (bytesPerSecond >= 1024.0 * 1024 * 0.9995) {
             value = bytesPerSecond / (1024.0 * 1024)
             unit = "MB"
         } else {
@@ -69,9 +70,8 @@ object FormatUtils {
         }
 
         val formattedValue = if (unit == "KB") {
-            String.format(Locale.US, "%.0f", value) // Integer for KB
+            String.format(Locale.US, "%.0f", value)
         } else {
-            // MB or GB: Show decimal if < 100, else integer to save space
             if (value >= 99.95) {
                 String.format(Locale.US, "%.0f", value)
             } else {
@@ -101,8 +101,9 @@ object FormatUtils {
         if (bytesPerSecond < 0) return "B/s"
         if (bytesPerSecond < 1024) return "B/s"
 
-        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
+        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s", "TB/s")
         val digitGroups = (log10(bytesPerSecond.toDouble()) / log10(1024.0)).toInt()
+            .coerceAtMost(units.lastIndex)
         return units[digitGroups]
     }
 

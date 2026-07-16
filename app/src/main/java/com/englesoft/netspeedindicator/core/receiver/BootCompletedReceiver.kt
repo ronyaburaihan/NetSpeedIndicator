@@ -8,7 +8,9 @@ import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
+            intent.action == "android.intent.action.QUICKBOOT_POWERON"
+        ) {
             ContextCompat.startForegroundService(
                 context,
                 Intent(context, SpeedMonitorService::class.java)

@@ -105,7 +105,7 @@ object NotificationHelper {
             .setOnlyAlertOnce(true) // No sound/vibration on updates
             .setSilent(true)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // Push to bottom/silent section
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
         val icon = createStatusIcon(

@@ -291,15 +291,16 @@ private fun SettingsScreenContent(
                         )
                         GlassPanelItem(
                             icon = Icons.Default.RocketLaunch,
-                            iconTint = Color(0xFF2DD4BF), // teal-400
+                            iconTint = Color(0xFF2DD4BF),
                             iconBgColor = Color(0xFF14B8A6).copy(alpha = 0.2f),
                             title = stringResource(R.string.auto_start),
                             subtitle = stringResource(R.string.launch_on_device_boot),
                             onClick = { onEvent(SettingsUiEvent.OnRequestAutoStart) },
                             trailingContent = {
-                                CustomSwitch(
-                                    checked = false,
-                                    onCheckedChange = { onEvent(SettingsUiEvent.OnRequestAutoStart) }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         )

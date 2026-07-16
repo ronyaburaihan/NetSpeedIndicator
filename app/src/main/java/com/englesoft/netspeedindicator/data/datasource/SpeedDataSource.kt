@@ -14,19 +14,10 @@ import javax.inject.Singleton
 @Singleton
 class SpeedDataSource @Inject constructor() {
     
-    private var lastRxBytes = 0L
-    private var lastTxBytes = 0L
-    private var lastTimestamp = 0L
-    
-    /**
-     * Observe speed updates at specified interval
-     * @param intervalMs Update interval in milliseconds
-     */
     fun observeSpeed(intervalMs: Long = 1000L): Flow<Pair<Long, Long>> = flow {
-        // Initialize baseline
-        lastRxBytes = TrafficStats.getTotalRxBytes()
-        lastTxBytes = TrafficStats.getTotalTxBytes()
-        lastTimestamp = System.currentTimeMillis()
+        var lastRxBytes = TrafficStats.getTotalRxBytes()
+        var lastTxBytes = TrafficStats.getTotalTxBytes()
+        var lastTimestamp = System.currentTimeMillis()
         
         while (true) {
             delay(intervalMs)

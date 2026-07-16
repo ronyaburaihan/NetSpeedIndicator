@@ -4,7 +4,6 @@ import android.app.usage.NetworkStatsManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build
 import android.util.Log
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -60,35 +59,25 @@ class UsageDataSource @Inject constructor(
         }
         
         try {
-            // Get WiFi usage
-            val wifiSummary = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                statsManager.querySummaryForDevice(
-                    ConnectivityManager.TYPE_WIFI,
-                    null,
-                    startMillis,
-                    endMillis
-                )
-            } else {
-                null
-            }
+            val wifiSummary = statsManager.querySummaryForDevice(
+                ConnectivityManager.TYPE_WIFI,
+                null,
+                startMillis,
+                endMillis
+            )
             
-            val wifiRx = wifiSummary?.rxBytes ?: 0L
-            val wifiTx = wifiSummary?.txBytes ?: 0L
+            val wifiRx = wifiSummary.rxBytes
+            val wifiTx = wifiSummary.txBytes
             
-            // Get Mobile usage
-            val mobileSummary = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                statsManager.querySummaryForDevice(
-                    ConnectivityManager.TYPE_MOBILE,
-                    null,
-                    startMillis,
-                    endMillis
-                )
-            } else {
-                null
-            }
+            val mobileSummary = statsManager.querySummaryForDevice(
+                ConnectivityManager.TYPE_MOBILE,
+                null,
+                startMillis,
+                endMillis
+            )
             
-            val mobileRx = mobileSummary?.rxBytes ?: 0L
-            val mobileTx = mobileSummary?.txBytes ?: 0L
+            val mobileRx = mobileSummary.rxBytes
+            val mobileTx = mobileSummary.txBytes
             
             return UsageInfo(
                 date = dateStr,

@@ -32,7 +32,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -65,6 +64,7 @@ class SpeedMonitorService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private var monitoringJob: Job? = null
+    private var periodicSaveJob: Job? = null
     private var showOnLockScreen = true
     private var showUploadSpeed = false
 
@@ -140,6 +140,7 @@ class SpeedMonitorService : Service() {
 
     private fun startMonitoring() {
         monitoringJob?.cancel()
+        periodicSaveJob?.cancel()
 
         monitoringJob = serviceScope.launch {
             // Load today's usage from DB
@@ -218,10 +219,9 @@ class SpeedMonitorService : Service() {
                 }
         }
 
-        // Periodic save job (every 1 minute)
-        serviceScope.launch {
+        periodicSaveJob = serviceScope.launch {
             while (true) {
-                delay(1 * 60 * 1000L) // 1 minute
+                delay(1 * 60 * 1000L)
                 saveCurrentUsage()
             }
         }
@@ -332,25 +332,41 @@ class SpeedMonitorService : Service() {
         )
         val alarmService =
             applicationContext.getSystemService(ALARM_SERVICE) as AlarmManager
-        alarmService.set(
-            AlarmManager.ELAPSED_REALTIME,
-            SystemClock.elapsedRealtime() + 1000,
-            restartServicePendingIntent
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmService.canScheduleExactAlarms()) {
+                alarmService.setExactAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + 1000,
+                    restartServicePendingIntent
+                )
+            } else {
+                alarmService.setAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + 1000,
+                    restartServicePendingIntent
+                )
+            }
+        } else {
+            alarmService.setExact(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + 1000,
+                restartServicePendingIntent
+            )
+        }
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        // Save usage before stopping
-        // Use runBlocking to ensure save completes before service is destroyed
-        runBlocking {
+        periodicSaveJob?.cancel()
+        monitoringJob?.cancel()
+
+        kotlinx.coroutines.MainScope().launch {
             saveCurrentUsage()
+            trafficStateManager.setServiceRunning(false)
         }
 
-        trafficStateManager.setServiceRunning(false)
-        monitoringJob?.cancel()
         serviceScope.cancel()
     }
 
