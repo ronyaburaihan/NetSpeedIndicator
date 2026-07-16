@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Start monitoring service automatically
-        startService(Intent(this, SpeedMonitorService::class.java))
+        ContextCompat.startForegroundService(this, Intent(this, SpeedMonitorService::class.java))
 
         // Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

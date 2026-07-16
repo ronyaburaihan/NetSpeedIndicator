@@ -6,17 +6,17 @@ import kotlinx.serialization.Serializable
 sealed class ScreenRoute {
 
     @Serializable
-    object Onboarding : ScreenRoute()
+    data object Onboarding : ScreenRoute()
 
     @Serializable
-    object Main : ScreenRoute()
+    data object Main : ScreenRoute()
 
     @Serializable
-    object Home : ScreenRoute()
+    data object Home : ScreenRoute()
 
     @Serializable
-    object History : ScreenRoute()
+    data object History : ScreenRoute()
 
     @Serializable
-    object Settings : ScreenRoute()
+    data object Settings : ScreenRoute()
 }

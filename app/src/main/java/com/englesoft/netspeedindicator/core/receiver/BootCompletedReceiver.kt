@@ -3,18 +3,16 @@ package com.englesoft.netspeedindicator.core.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import androidx.core.content.ContextCompat
 import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            val serviceIntent = Intent(context, SpeedMonitorService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.startService(serviceIntent)
-            }
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, SpeedMonitorService::class.java)
+            )
         }
     }
 }

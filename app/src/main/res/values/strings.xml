@@ -23,7 +23,8 @@
 
     <string name="appearance">Appearance</string>
     <string name="app_theme">App Theme</string>
-    <string name="dark_mode">Dark mode</string>
+    <string name="theme_options_desc">System, Light, or Dark</string>
+    <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="dynamic_color">Dynamic Color</string>
     <string name="match_system_wallpaper">Match system wallpaper</string>

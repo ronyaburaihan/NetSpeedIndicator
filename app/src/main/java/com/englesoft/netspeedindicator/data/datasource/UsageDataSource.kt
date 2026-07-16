@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
@@ -21,7 +22,12 @@ import javax.inject.Singleton
 class UsageDataSource @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    
+
+    companion object {
+        private const val TAG = "UsageDataSource"
+    }
+
+
     private val networkStatsManager: NetworkStatsManager? by lazy {
         context.getSystemService(Context.NETWORK_STATS_SERVICE) as? NetworkStatsManager
     }
@@ -94,7 +100,7 @@ class UsageDataSource @Inject constructor(
             
         } catch (e: Exception) {
             // Permission not granted or other error
-            e.printStackTrace()
+            Log.e(TAG, "Failed to query usage for $dateStr", e)
             return null
         }
     }

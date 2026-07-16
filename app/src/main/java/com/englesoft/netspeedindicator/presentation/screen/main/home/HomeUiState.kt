@@ -9,8 +9,6 @@ data class HomeUiState(
     val todayUsage: UsageInfo = UsageInfo(),
     val peakSpeed: Long = 0L,
     val sessionDurationSeconds: Long = 0L,
-    val isLoading: Boolean = false,
-    val message: String? = null,
     val showStopDialog: Boolean = false,
     val shouldFinishActivity: Boolean = false
 )

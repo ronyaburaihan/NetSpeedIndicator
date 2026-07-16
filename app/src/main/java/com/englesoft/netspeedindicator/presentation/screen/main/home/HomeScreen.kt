@@ -1,5 +1,6 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.home
 
+import android.app.Activity
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -49,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -73,37 +77,33 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = androidx.compose.ui.platform.LocalContext.current
-    
+    val context = LocalContext.current
+
     // Handle activity finish
-    androidx.compose.runtime.LaunchedEffect(uiState.shouldFinishActivity) {
+    LaunchedEffect(uiState.shouldFinishActivity) {
         if (uiState.shouldFinishActivity) {
-            (context as? android.app.Activity)?.finishAffinity()
-            viewModel.onActivityFinished()
+            (context as? Activity)?.finishAffinity()
+            viewModel.onEvent(HomeUiEvent.OnActivityFinished)
         }
     }
 
     HomeScreenContent(
         uiState = uiState,
-        onStopClick = viewModel::showStopDialog,
-        onDismissDialog = viewModel::hideStopDialog,
-        onConfirmStop = viewModel::stopService
+        onEvent = viewModel::onEvent
     )
 }
 
 @Composable
 private fun HomeScreenContent(
     uiState: HomeUiState,
-    onStopClick: () -> Unit = {},
-    onDismissDialog: () -> Unit = {},
-    onConfirmStop: () -> Unit = {}
+    onEvent: (HomeUiEvent) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
     if (uiState.showStopDialog) {
         StopMonitoringDialog(
-            onDismiss = onDismissDialog,
-            onConfirm = onConfirmStop
+            onDismiss = { onEvent(HomeUiEvent.OnDismissDialog) },
+            onConfirm = { onEvent(HomeUiEvent.OnConfirmStop) }
         )
     }
 
@@ -114,7 +114,7 @@ private fun HomeScreenContent(
                 subTitle = stringResource(R.string.real_time_monitor),
                 showTrailingIcon = true,
                 trailingIcon = Icons.Default.PowerSettingsNew,
-                onTrailingIconClick = onStopClick
+                onTrailingIconClick = { onEvent(HomeUiEvent.OnStopClick) }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -128,7 +128,9 @@ private fun HomeScreenContent(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             CurrentSpeedCard(
-                currentSpeed = uiState.currentSpeed
+                currentSpeed = uiState.currentSpeed,
+                peakSpeed = uiState.peakSpeed,
+                sessionDurationSeconds = uiState.sessionDurationSeconds
             )
 
             Column(
@@ -213,7 +215,9 @@ private fun HomeScreenContent(
 
 @Composable
 private fun CurrentSpeedCard(
-    currentSpeed: SpeedInfo
+    currentSpeed: SpeedInfo,
+    peakSpeed: Long,
+    sessionDurationSeconds: Long
 ) {
     val totalSpeed = currentSpeed.totalBytesPerSecond
     val downloadSpeed = currentSpeed.downloadBytesPerSecond
@@ -347,6 +351,40 @@ private fun CurrentSpeedCard(
                     icon = {
                         Icon(
                             Icons.Default.ArrowUpward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                GlassPanelStat(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.peak),
+                    value = FormatUtils.formatSpeed(peakSpeed),
+                    icon = {
+                        Icon(
+                            Icons.Default.Speed,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+                GlassPanelStat(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.time),
+                    value = FormatUtils.formatDuration(sessionDurationSeconds),
+                    icon = {
+                        Icon(
+                            Icons.Default.Timer,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp)
@@ -702,9 +740,7 @@ fun HomeScreenPreview() {
     NetSpeedIndicatorTheme {
         HomeScreenContent(
             uiState = HomeUiState(),
-            onStopClick = {},
-            onDismissDialog = {},
-            onConfirmStop = {}
+            onEvent = {}
         )
     }
 }

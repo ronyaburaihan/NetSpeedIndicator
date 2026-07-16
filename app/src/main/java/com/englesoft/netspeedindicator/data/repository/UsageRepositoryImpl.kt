@@ -6,8 +6,10 @@ import com.englesoft.netspeedindicator.data.mapper.toDomain
 import com.englesoft.netspeedindicator.data.mapper.toEntity
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.domain.repository.UsageRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -25,77 +27,79 @@ class UsageRepositoryImpl @Inject constructor(
     
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     
-    override suspend fun saveUsage(usage: UsageInfo) {
+    override suspend fun saveUsage(usage: UsageInfo) = withContext(Dispatchers.IO) {
         usageDao.insertOrUpdate(usage.toEntity())
     }
-    
-    override suspend fun getTodayUsage(): UsageInfo? {
+
+    override suspend fun getTodayUsage(): UsageInfo? = withContext(Dispatchers.IO) {
         val today = LocalDate.now().format(dateFormatter)
-        
+
         // Try to get accurate data from NetworkStatsManager first
         val systemUsage = usageDataSource.getUsageForDate(today)
         if (systemUsage != null) {
             // Sync with DB
             saveUsage(systemUsage)
-            return systemUsage
+            return@withContext systemUsage
         }
-        
+
         // Fallback to DB (manual tracking)
-        return usageDao.getByDate(today)?.toDomain()
+        usageDao.getByDate(today)?.toDomain()
     }
-    
-    override suspend fun getUsageByDate(date: String): UsageInfo? {
+
+    override suspend fun getUsageByDate(date: String): UsageInfo? = withContext(Dispatchers.IO) {
         // Try to get accurate data from NetworkStatsManager first
         val systemUsage = usageDataSource.getUsageForDate(date)
         if (systemUsage != null) {
             // Sync with DB
             saveUsage(systemUsage)
-            return systemUsage
+            return@withContext systemUsage
         }
-        
-        return usageDao.getByDate(date)?.toDomain()
+
+        usageDao.getByDate(date)?.toDomain()
     }
-    
-    override suspend fun getUsageByDateRange(startDate: String, endDate: String): List<UsageInfo> {
-        // Sync history with system data
-        val start = LocalDate.parse(startDate, dateFormatter)
-        val end = LocalDate.parse(endDate, dateFormatter)
-        
-        var current = start
-        while (!current.isAfter(end)) {
-            val dateStr = current.format(dateFormatter)
-            // Try to fetch accurate usage from system
-            val systemUsage = usageDataSource.getUsageForDate(dateStr)
-            if (systemUsage != null) {
-                saveUsage(systemUsage)
+
+    override suspend fun getUsageByDateRange(startDate: String, endDate: String): List<UsageInfo> =
+        withContext(Dispatchers.IO) {
+            // Sync history with system data
+            val start = LocalDate.parse(startDate, dateFormatter)
+            val end = LocalDate.parse(endDate, dateFormatter)
+
+            var current = start
+            while (!current.isAfter(end)) {
+                val dateStr = current.format(dateFormatter)
+                // Try to fetch accurate usage from system
+                val systemUsage = usageDataSource.getUsageForDate(dateStr)
+                if (systemUsage != null) {
+                    saveUsage(systemUsage)
+                }
+                current = current.plusDays(1)
             }
-            current = current.plusDays(1)
+
+            usageDao.getByDateRange(startDate, endDate).map { it.toDomain() }
         }
-        
-        return usageDao.getByDateRange(startDate, endDate).map { it.toDomain() }
-    }
-    
+
     override fun observeTodayUsage(): Flow<UsageInfo?> {
         val today = LocalDate.now().format(dateFormatter)
         return usageDao.observeByDate(today).map { it?.toDomain() }
     }
-    
-    override suspend fun getMonthlyUsage(yearMonth: String): List<UsageInfo> {
-        // Sync monthly data with system
-        val yearMonthObj = java.time.YearMonth.parse(yearMonth)
-        val startDate = yearMonthObj.atDay(1)
-        val endDate = yearMonthObj.atEndOfMonth().coerceAtMost(LocalDate.now()) // Don't sync future dates
-        
-        var current = startDate
-        while (!current.isAfter(endDate)) {
-            val dateStr = current.format(dateFormatter)
-            val systemUsage = usageDataSource.getUsageForDate(dateStr)
-            if (systemUsage != null) {
-                saveUsage(systemUsage)
+
+    override suspend fun getMonthlyUsage(yearMonth: String): List<UsageInfo> =
+        withContext(Dispatchers.IO) {
+            // Sync monthly data with system
+            val yearMonthObj = java.time.YearMonth.parse(yearMonth)
+            val startDate = yearMonthObj.atDay(1)
+            val endDate = yearMonthObj.atEndOfMonth().coerceAtMost(LocalDate.now()) // Don't sync future dates
+
+            var current = startDate
+            while (!current.isAfter(endDate)) {
+                val dateStr = current.format(dateFormatter)
+                val systemUsage = usageDataSource.getUsageForDate(dateStr)
+                if (systemUsage != null) {
+                    saveUsage(systemUsage)
+                }
+                current = current.plusDays(1)
             }
-            current = current.plusDays(1)
+
+            usageDao.getByMonth(yearMonth).map { it.toDomain() }
         }
-        
-        return usageDao.getByMonth(yearMonth).map { it.toDomain() }
-    }
 }

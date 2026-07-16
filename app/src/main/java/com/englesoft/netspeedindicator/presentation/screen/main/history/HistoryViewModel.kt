@@ -1,23 +1,19 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.history
 
-import android.app.Application
-import android.content.Intent
-import android.os.Process
-import androidx.lifecycle.AndroidViewModel
+import android.util.Log
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.englesoft.netspeedindicator.core.service.SpeedMonitorService
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
-import com.englesoft.netspeedindicator.domain.usecase.GetDailyUsageUseCase
 import com.englesoft.netspeedindicator.domain.usecase.GetMonthlyUsageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 /**
@@ -26,124 +22,78 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    private val application: Application,
-    private val getDailyUsageUseCase: GetDailyUsageUseCase,
     private val getMonthlyUsageUseCase: GetMonthlyUsageUseCase,
     private val trafficStateManager: TrafficStateManager
-) : AndroidViewModel(application) {
+) : ViewModel() {
+
+    companion object {
+        private const val TAG = "HistoryViewModel"
+    }
 
     private val _dailyUsage = MutableStateFlow<List<UsageInfo>>(emptyList())
-    val dailyUsage: StateFlow<List<UsageInfo>> = _dailyUsage.asStateFlow()
-
-    private val _monthlyUsage = MutableStateFlow<List<UsageInfo>>(emptyList())
-    val monthlyUsage: StateFlow<List<UsageInfo>> = _monthlyUsage.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     private val _selectedMonthIndex = MutableStateFlow(0)
-    val selectedMonthIndex: StateFlow<Int> = _selectedMonthIndex.asStateFlow()
+
+    val uiState: StateFlow<HistoryUiState> = combine(
+        _dailyUsage, _isLoading, _selectedMonthIndex
+    ) { dailyUsage, isLoading, selectedMonthIndex ->
+        HistoryUiState(
+            dailyUsage = dailyUsage,
+            isLoading = isLoading,
+            selectedMonthIndex = selectedMonthIndex
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HistoryUiState())
 
     init {
         loadDailyUsage(0)
         observeRealtimeUsage()
     }
 
-    fun selectMonth(index: Int) {
-        _selectedMonthIndex.value = index
-        loadDailyUsage(index)
+    fun onEvent(event: HistoryUiEvent) {
+        when (event) {
+            is HistoryUiEvent.OnSelectMonth -> selectMonth(event.monthsBack)
+        }
     }
 
-    fun stopService() {
-        val intent = Intent(application, SpeedMonitorService::class.java)
-        application.stopService(intent)
+    private fun selectMonth(monthsBack: Int) {
+        _selectedMonthIndex.value = monthsBack
+        loadDailyUsage(monthsBack)
     }
 
-    fun exitApp() {
-        stopService()
-        // Close the application process
-        Process.killProcess(Process.myPid())
-    }
-
+    /** Overlays the live, in-memory "today" reading onto the current month's list as it streams in. */
     private fun observeRealtimeUsage() {
         viewModelScope.launch {
             trafficStateManager.dailyUsage.collect { liveUsage ->
                 if (_selectedMonthIndex.value == 0) {
-                    // Update the "Today" entry in the current list ONLY if viewing Current Month
-                    val currentList = _dailyUsage.value.toMutableList()
-                    val todayStr = liveUsage.date
-
-                    val index = currentList.indexOfFirst { it.date == todayStr }
-                    if (index != -1) {
-                        currentList[index] = liveUsage
-                    } else {
-                        // If today isn't in the list yet (e.g. new day), add it at the top
-                        // Assuming list is sorted desc
-                        currentList.add(0, liveUsage)
-                    }
-                    _dailyUsage.value = currentList
+                    _dailyUsage.value = mergeLiveUsage(_dailyUsage.value, liveUsage)
                 }
             }
         }
     }
 
-    fun loadDailyUsage(monthOffset: Int = 0) {
+    private fun loadDailyUsage(monthsBack: Int) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Calculate target month
-                val targetMonth = YearMonth.now().minusMonths(monthOffset.toLong())
-                val yearMonthStr = targetMonth.format(DateTimeFormatter.ofPattern("yyyy-MM"))
-
-                // Fetch usage for that month
-                val dbUsageList = getMonthlyUsageUseCase.getByMonth(yearMonthStr)
-                val dbUsageMap = dbUsageList.associateBy { it.date }
-
-                // Generate full list of dates for the month
-                val fullList = mutableListOf<UsageInfo>()
-                val daysInMonth = targetMonth.lengthOfMonth()
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
-                // Iterate from last day to first day (descending)
-                // Use current day if in current month to avoid future dates?
-                // UI shows full month usually, but maybe restrict to "today" if current month?
-                // The requirement says "exact same as given ui", usually history shows all days or up to today.
-                // Let's show all days of the month for consistency, or up to today for current month.
-
-                val lastDayToShow = if (monthOffset == 0) {
-                    LocalDate.now().dayOfMonth
-                } else {
-                    daysInMonth
+                var calendar = getMonthlyUsageUseCase.getMonthCalendar(monthsBack)
+                if (monthsBack == 0) {
+                    calendar = mergeLiveUsage(calendar, trafficStateManager.dailyUsage.value)
                 }
-
-                for (day in lastDayToShow downTo 1) {
-                    val date = targetMonth.atDay(day)
-                    val dateStr = date.format(formatter)
-
-                    val usage = dbUsageMap[dateStr] ?: UsageInfo(
-                        date = dateStr,
-                        wifiRxBytes = 0, wifiTxBytes = 0, mobileRxBytes = 0, mobileTxBytes = 0
-                    )
-                    fullList.add(usage)
-                }
-
-                _dailyUsage.value = fullList
-
-                // Only sync realtime for current month
-                if (monthOffset == 0) {
-                    val liveUsage = trafficStateManager.dailyUsage.value
-                    val currentList = fullList.toMutableList()
-                    val index = currentList.indexOfFirst { it.date == liveUsage.date }
-                    if (index != -1) {
-                        currentList[index] = liveUsage
-                        _dailyUsage.value = currentList
-                    }
-                }
+                _dailyUsage.value = calendar
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to load usage history for monthsBack=$monthsBack", e)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    /** [list] is assumed date-descending; replaces or prepends the entry matching [liveUsage]'s date. */
+    private fun mergeLiveUsage(list: List<UsageInfo>, liveUsage: UsageInfo): List<UsageInfo> {
+        val index = list.indexOfFirst { it.date == liveUsage.date }
+        if (index == -1) return listOf(liveUsage) + list
+        return list.toMutableList().apply { this[index] = liveUsage }
     }
 }

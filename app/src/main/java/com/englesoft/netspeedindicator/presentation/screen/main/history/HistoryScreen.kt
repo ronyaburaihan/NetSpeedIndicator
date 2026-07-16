@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.englesoft.netspeedindicator.R
+import com.englesoft.netspeedindicator.core.util.FormatUtils
 import com.englesoft.netspeedindicator.domain.model.UsageInfo
 import com.englesoft.netspeedindicator.presentation.component.AppTopBar
 import com.englesoft.netspeedindicator.presentation.theme.dimens
@@ -56,9 +57,22 @@ import java.util.Locale
 fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
-    val dailyUsage by viewModel.dailyUsage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val selectedMonthIndex by viewModel.selectedMonthIndex.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    HistoryScreenContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HistoryScreenContent(
+    uiState: HistoryUiState,
+    onEvent: (HistoryUiEvent) -> Unit = {}
+) {
+    val dailyUsage = uiState.dailyUsage
+    val isLoading = uiState.isLoading
+    val selectedMonthIndex = uiState.selectedMonthIndex
 
     val targetMonthPrefix = remember(selectedMonthIndex) {
         YearMonth.now().minusMonths(selectedMonthIndex.toLong())
@@ -129,19 +143,19 @@ fun HistoryScreen(
                             text = stringResource(R.string.this_month),
                             isSelected = selectedMonthIndex == 0,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.selectMonth(0) }
+                            onClick = { onEvent(HistoryUiEvent.OnSelectMonth(0)) }
                         )
                         SegmentedButton(
                             text = stringResource(R.string.last_month),
                             isSelected = selectedMonthIndex == 1,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.selectMonth(1) }
+                            onClick = { onEvent(HistoryUiEvent.OnSelectMonth(1)) }
                         )
                         SegmentedButton(
                             text = stringResource(R.string.last_3_months),
                             isSelected = selectedMonthIndex == 3,
                             modifier = Modifier.weight(1f),
-                            onClick = { viewModel.selectMonth(3) }
+                            onClick = { onEvent(HistoryUiEvent.OnSelectMonth(3)) }
                         )
                     }
                 }
@@ -512,7 +526,7 @@ fun UsageRow(usage: UsageInfo) {
     )
 }
 
-fun formatDayOfWeek(dateString: String): String {
+private fun formatDayOfWeek(dateString: String): String {
     if (dateString == "This Month" || dateString == "Today" || dateString == "Yesterday") return dateString
     return try {
         val date = LocalDate.parse(dateString)
@@ -527,7 +541,7 @@ fun formatDayOfWeek(dateString: String): String {
     }
 }
 
-fun formatDateParts(dateString: String): Pair<String, String> {
+private fun formatDateParts(dateString: String): Pair<String, String> {
     if (dateString == "This Month" || dateString == "Today" || dateString == "Yesterday") return Pair(
         "",
         dateString
@@ -542,17 +556,8 @@ fun formatDateParts(dateString: String): Pair<String, String> {
     }
 }
 
-fun formatDataParts(bytes: Long): Pair<String, String> {
-    if (bytes == 0L) return Pair("0", "MB")
-
-    val gb = bytes / (1024.0 * 1024.0 * 1024.0)
-    if (gb >= 1.0) {
-        return Pair(String.format(Locale.US, "%.2f", gb), "GB")
-    }
-
-    val mb = bytes / (1024.0 * 1024.0)
-    if (mb >= 10.0) {
-        return Pair(String.format(Locale.US, "%.0f", mb), "MB")
-    }
-    return Pair(String.format(Locale.US, "%.1f", mb), "MB")
-}
+// Delegates to FormatUtils so byte formatting is consistent with the Home screen
+// (previously this reimplemented its own thresholds, which could show different values
+// for the same byte count depending on which screen you were looking at).
+private fun formatDataParts(bytes: Long): Pair<String, String> =
+    FormatUtils.formatBytesValue(bytes) to FormatUtils.formatBytesUnit(bytes)

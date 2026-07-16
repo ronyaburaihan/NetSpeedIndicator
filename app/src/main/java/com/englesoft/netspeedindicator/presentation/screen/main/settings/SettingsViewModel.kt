@@ -1,24 +1,23 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.settings
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
-import androidx.lifecycle.AndroidViewModel
+import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.englesoft.netspeedindicator.core.util.AutoStartPermissionUtils
 import com.englesoft.netspeedindicator.core.util.PermissionUtils
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import androidx.core.net.toUri
 
 /**
  * ViewModel for Settings screen
@@ -26,86 +25,77 @@ import androidx.core.net.toUri
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val application: Application,
+    @ApplicationContext private val context: Context,
     private val preferenceManager: PreferenceManager
-) : AndroidViewModel(application) {
-
-    val appTheme = preferenceManager.appTheme
-        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), 0)
-
-    val dynamicColor = preferenceManager.dynamicColor
-        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), true)
-
-    val lockScreenNotification = preferenceManager.lockScreenNotification
-        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), true)
-
-    val showUploadSpeed = preferenceManager.showUploadSpeed
-        .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), false)
+) : ViewModel() {
 
     private val _hasUsagePermission = MutableStateFlow(false)
-    val hasUsagePermission: StateFlow<Boolean> = _hasUsagePermission.asStateFlow()
-
     private val _isBatteryOptimizationDisabled = MutableStateFlow(false)
-    val isBatteryOptimizationDisabled: StateFlow<Boolean> =
-        _isBatteryOptimizationDisabled.asStateFlow()
-
     private val _isAutoStartAvailable = MutableStateFlow(false)
-    val isAutoStartAvailable: StateFlow<Boolean> = _isAutoStartAvailable.asStateFlow()
+
+    val uiState: StateFlow<SettingsUiState> = combine(
+        preferenceManager.appTheme,
+        preferenceManager.dynamicColor,
+        preferenceManager.lockScreenNotification,
+        preferenceManager.showUploadSpeed,
+        _hasUsagePermission
+    ) { appTheme, dynamicColor, lockScreenNotification, showUploadSpeed, hasUsagePermission ->
+        SettingsUiState(
+            appTheme = appTheme,
+            dynamicColor = dynamicColor,
+            lockScreenNotification = lockScreenNotification,
+            showUploadSpeed = showUploadSpeed,
+            hasUsagePermission = hasUsagePermission
+        )
+    }.combine(_isBatteryOptimizationDisabled) { state, isDisabled ->
+        state.copy(isBatteryOptimizationDisabled = isDisabled)
+    }.combine(_isAutoStartAvailable) { state, isAvailable ->
+        state.copy(isAutoStartAvailable = isAvailable)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     init {
         checkPermissions()
     }
 
-    fun checkPermissions() {
-        _hasUsagePermission.value = PermissionUtils.hasUsageStatsPermission(application)
+    fun onEvent(event: SettingsUiEvent) {
+        when (event) {
+            SettingsUiEvent.OnResume -> checkPermissions()
+            SettingsUiEvent.OnThemeCycle -> preferenceManager.setAppTheme((uiState.value.appTheme + 1) % 3)
+            is SettingsUiEvent.OnDynamicColorChanged -> preferenceManager.setDynamicColor(event.enabled)
+            is SettingsUiEvent.OnLockScreenNotificationChanged ->
+                preferenceManager.setLockScreenNotification(event.enabled)
+            is SettingsUiEvent.OnNotificationBarChanged -> preferenceManager.setShowUploadSpeed(event.enabled)
+            SettingsUiEvent.OnRequestUsagePermission -> PermissionUtils.openUsageAccessSettings(context)
+            SettingsUiEvent.OnRequestBatteryOptimization -> requestDisableBatteryOptimization()
+            SettingsUiEvent.OnRequestAutoStart -> AutoStartPermissionUtils.requestAutoStartPermission(context)
+        }
+    }
+
+    private fun checkPermissions() {
+        _hasUsagePermission.value = PermissionUtils.hasUsageStatsPermission(context)
         _isBatteryOptimizationDisabled.value = checkBatteryOptimization()
-        _isAutoStartAvailable.value =
-            AutoStartPermissionUtils.isAutoStartPermissionAvailable(application)
+        _isAutoStartAvailable.value = AutoStartPermissionUtils.isAutoStartPermissionAvailable(context)
     }
 
     private fun checkBatteryOptimization(): Boolean {
-        val powerManager = application.getSystemService(Context.POWER_SERVICE) as PowerManager
-        return powerManager.isIgnoringBatteryOptimizations(application.packageName)
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isIgnoringBatteryOptimizations(context.packageName)
     }
 
-    fun setAppTheme(theme: Int) {
-        preferenceManager.setAppTheme(theme)
-    }
-
-    fun setDynamicColor(enabled: Boolean) {
-        preferenceManager.setDynamicColor(enabled)
-    }
-
-    fun setLockScreenNotification(enabled: Boolean) {
-        preferenceManager.setLockScreenNotification(enabled)
-    }
-
-    fun setShowUploadSpeed(enabled: Boolean) {
-        preferenceManager.setShowUploadSpeed(enabled)
-    }
-
-    fun requestUsagePermission() {
-        PermissionUtils.openUsageAccessSettings(application)
-    }
-
-    fun requestDisableBatteryOptimization() {
+    private fun requestDisableBatteryOptimization() {
         try {
             val intent = Intent().apply {
                 action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                data = "package:${application.packageName}".toUri()
+                data = "package:${context.packageName}".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            application.startActivity(intent)
+            context.startActivity(intent)
         } catch (e: Exception) {
             // Fallback to generic settings if direct request fails
             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            application.startActivity(intent)
+            context.startActivity(intent)
         }
-    }
-
-    fun requestAutoStartPermission() {
-        AutoStartPermissionUtils.requestAutoStartPermission(application)
     }
 }

@@ -5,9 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import java.util.Locale
 
 object AutoStartPermissionUtils {
+
+    private const val TAG = "AutoStartPermissionUtils"
 
     fun isAutoStartPermissionAvailable(context: Context): Boolean {
         val intents = getAutoStartIntents(context)
@@ -25,7 +28,7 @@ object AutoStartPermissionUtils {
                     context.startActivity(intent)
                     break
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e(TAG, "Failed to launch auto-start settings for ${intent.component}", e)
                 }
             }
         }

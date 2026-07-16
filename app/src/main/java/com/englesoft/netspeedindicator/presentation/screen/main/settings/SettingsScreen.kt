@@ -1,6 +1,5 @@
 package com.englesoft.netspeedindicator.presentation.screen.main.settings
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,8 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -60,28 +57,31 @@ import com.englesoft.netspeedindicator.presentation.theme.dimens
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
-    val isBatteryOptimizationDisabled by viewModel.isBatteryOptimizationDisabled.collectAsState()
-    val isAutoStartAvailable by viewModel.isAutoStartAvailable.collectAsState()
-
-    val appTheme by viewModel.appTheme.collectAsState()
-    val dynamicColor by viewModel.dynamicColor.collectAsState()
-    val lockScreenNotification by viewModel.lockScreenNotification.collectAsState()
-    val showUploadSpeed by viewModel.showUploadSpeed.collectAsState() // used for Notification Bar toggle here
-
+    val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // Permissions can change in system settings while this screen is backgrounded;
+    // recheck them whenever the screen comes back into the foreground.
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.checkPermissions()
+            viewModel.onEvent(SettingsUiEvent.OnResume)
         }
     }
 
+    SettingsScreenContent(
+        uiState = uiState,
+        onEvent = viewModel::onEvent
+    )
+}
+
+@Composable
+private fun SettingsScreenContent(
+    uiState: SettingsUiState,
+    onEvent: (SettingsUiEvent) -> Unit = {}
+) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        //GradientMeshBackground()
-
         Scaffold(
             topBar = {
                 AppTopBar(
@@ -109,15 +109,19 @@ fun SettingsScreen(
                         iconTint = Color(0xFF60A5FA), // blue-400
                         iconBgColor = Color(0xFF3B82F6).copy(alpha = 0.2f),
                         title = stringResource(R.string.app_theme),
-                        subtitle = stringResource(R.string.dark_mode),
-                        onClick = { viewModel.setAppTheme((appTheme + 1) % 3) },
+                        subtitle = stringResource(R.string.theme_options_desc),
+                        onClick = { onEvent(SettingsUiEvent.OnThemeCycle) },
                         trailingContent = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    text = if (appTheme == 2) stringResource(R.string.dark) else "System",
+                                    text = when (uiState.appTheme) {
+                                        1 -> stringResource(R.string.light)
+                                        2 -> stringResource(R.string.dark)
+                                        else -> stringResource(R.string.system)
+                                    },
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -141,8 +145,9 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.match_system_wallpaper),
                         trailingContent = {
                             CustomSwitch(
-                                checked = dynamicColor,
-                                onCheckedChange = { viewModel.setDynamicColor(it) })
+                                checked = uiState.dynamicColor,
+                                onCheckedChange = { onEvent(SettingsUiEvent.OnDynamicColorChanged(it)) }
+                            )
                         }
                     )
                     HorizontalDivider(
@@ -155,23 +160,12 @@ fun SettingsScreen(
                         iconBgColor = Color(0xFFF43F5E).copy(alpha = 0.2f),
                         title = stringResource(R.string.app_language),
                         subtitle = stringResource(R.string.english_us),
-                        onClick = { /* Handle language change */ },
                         trailingContent = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.en),
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Icon(
-                                    Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            Text(
+                                text = stringResource(R.string.en),
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     )
                 }
@@ -184,12 +178,11 @@ fun SettingsScreen(
                         iconBgColor = Color(0xFF10B981).copy(alpha = 0.2f),
                         title = stringResource(R.string.unit_display),
                         subtitle = stringResource(R.string.mb_s_vs_mb_s),
-                        onClick = { /* Toggle unit */ },
                         trailingContent = {
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            Text(
+                                text = "MB/s",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
@@ -205,8 +198,11 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.show_speed_on_lockscreen),
                         trailingContent = {
                             CustomSwitch(
-                                checked = lockScreenNotification,
-                                onCheckedChange = { viewModel.setLockScreenNotification(it) })
+                                checked = uiState.lockScreenNotification,
+                                onCheckedChange = {
+                                    onEvent(SettingsUiEvent.OnLockScreenNotificationChanged(it))
+                                }
+                            )
                         }
                     )
                     HorizontalDivider(
@@ -221,8 +217,9 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.persistent_speed_monitor),
                         trailingContent = {
                             CustomSwitch(
-                                checked = showUploadSpeed,
-                                onCheckedChange = { viewModel.setShowUploadSpeed(it) })
+                                checked = uiState.showUploadSpeed,
+                                onCheckedChange = { onEvent(SettingsUiEvent.OnNotificationBarChanged(it)) }
+                            )
                         }
                     )
                 }
@@ -230,18 +227,19 @@ fun SettingsScreen(
                 // System Section
                 SettingsSection(title = stringResource(R.string.system)) {
                     GlassPanelItem(
-                        icon = Icons.Default.Info, // Used as fallback for security as Security icon name may clash
+                        // No Icons.Default.Security available in the icon set in use; Info is the closest fit.
+                        icon = Icons.Default.Info,
                         iconTint = Color(0xFF22D3EE), // cyan-400
                         iconBgColor = Color(0xFF06B6D4).copy(alpha = 0.2f),
                         title = stringResource(R.string.usage_access),
                         subtitle = stringResource(R.string.required_for_data_tracking),
-                        onClick = { viewModel.requestUsagePermission() },
+                        onClick = { onEvent(SettingsUiEvent.OnRequestUsagePermission) },
                         trailingContent = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                if (hasUsagePermission) {
+                                if (uiState.hasUsagePermission) {
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(16.dp))
@@ -278,14 +276,15 @@ fun SettingsScreen(
                         iconBgColor = Color(0xFFF97316).copy(alpha = 0.2f),
                         title = stringResource(R.string.battery_optimization),
                         subtitle = stringResource(R.string.disable_for_accurate_monitoring),
-                        onClick = { viewModel.requestDisableBatteryOptimization() },
+                        onClick = { onEvent(SettingsUiEvent.OnRequestBatteryOptimization) },
                         trailingContent = {
                             CustomSwitch(
-                                checked = isBatteryOptimizationDisabled,
-                                onCheckedChange = { /* Battery flow*/ })
+                                checked = uiState.isBatteryOptimizationDisabled,
+                                onCheckedChange = { onEvent(SettingsUiEvent.OnRequestBatteryOptimization) }
+                            )
                         }
                     )
-                    if (isAutoStartAvailable) {
+                    if (uiState.isAutoStartAvailable) {
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.05f),
                             modifier = Modifier.padding(horizontal = 16.dp)
@@ -296,9 +295,12 @@ fun SettingsScreen(
                             iconBgColor = Color(0xFF14B8A6).copy(alpha = 0.2f),
                             title = stringResource(R.string.auto_start),
                             subtitle = stringResource(R.string.launch_on_device_boot),
-                            onClick = { viewModel.requestAutoStartPermission() },
+                            onClick = { onEvent(SettingsUiEvent.OnRequestAutoStart) },
                             trailingContent = {
-                                CustomSwitch(checked = false, onCheckedChange = {})
+                                CustomSwitch(
+                                    checked = false,
+                                    onCheckedChange = { onEvent(SettingsUiEvent.OnRequestAutoStart) }
+                                )
                             }
                         )
                     }
@@ -405,60 +407,4 @@ fun CustomSwitch(
         checked = checked,
         onCheckedChange = onCheckedChange
     )
-}
-
-@Composable
-fun GradientMeshBackground() {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F172A))
-    ) { // slate-900 base
-        val w = size.width
-        val h = size.height
-
-        // Top Left Blue
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF3B82F6).copy(alpha = 0.15f), Color.Transparent),
-                center = Offset(0f, 0f),
-                radius = w * 0.8f
-            ),
-            center = Offset(0f, 0f),
-            radius = w * 0.8f
-        )
-
-        // Top Right Indigo
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF6366F1).copy(alpha = 0.15f), Color.Transparent),
-                center = Offset(w, 0f),
-                radius = w * 0.8f
-            ),
-            center = Offset(w, 0f),
-            radius = w * 0.8f
-        )
-
-        // Bottom Right Purple
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFA855F7).copy(alpha = 0.1f), Color.Transparent),
-                center = Offset(w, h),
-                radius = w * 0.8f
-            ),
-            center = Offset(w, h),
-            radius = w * 0.8f
-        )
-
-        // Bottom Left Blue
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF3B82F6).copy(alpha = 0.1f), Color.Transparent),
-                center = Offset(0f, h),
-                radius = w * 0.8f
-            ),
-            center = Offset(0f, h),
-            radius = w * 0.8f
-        )
-    }
 }

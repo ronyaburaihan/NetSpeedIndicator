@@ -14,6 +14,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.ServiceCompat
 import com.englesoft.netspeedindicator.data.manager.TrafficStateManager
 import com.englesoft.netspeedindicator.data.preferences.PreferenceManager
@@ -42,6 +43,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class SpeedMonitorService : Service() {
+
+    companion object {
+        private const val TAG = "SpeedMonitorService"
+    }
 
     @Inject
     lateinit var getCurrentSpeedUseCase: GetCurrentSpeedUseCase
@@ -84,9 +89,8 @@ class SpeedMonitorService : Service() {
         NotificationHelper.createNotificationChannel(this)
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-    }
+        trafficStateManager.setServiceRunning(true)
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Observe lock screen preference
         serviceScope.launch {
             preferenceManager.lockScreenNotification.collect {
@@ -100,7 +104,9 @@ class SpeedMonitorService : Service() {
                 showUploadSpeed = it
             }
         }
+    }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = NotificationHelper.buildNotification(
             this,
             "0 B/s",
@@ -117,17 +123,17 @@ class SpeedMonitorService : Service() {
                 this,
                 NotificationHelper.NOTIFICATION_ID,
                 notification,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                } else {
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC // Use same type for R+ if appropriate or 0
-                }
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             )
         } else {
             startForeground(NotificationHelper.NOTIFICATION_ID, notification)
         }
 
-        startMonitoring()
+        // Avoid resetting session/peak counters if monitoring is already active
+        // (onStartCommand can fire again from a redundant startService() call, e.g. on Activity recreation)
+        if (monitoringJob?.isActive != true) {
+            startMonitoring()
+        }
 
         return START_STICKY
     }
@@ -142,7 +148,7 @@ class SpeedMonitorService : Service() {
             // Start speed monitoring
             getCurrentSpeedUseCase()
                 .catch { e ->
-                    e.printStackTrace()
+                    Log.e(TAG, "Speed monitoring stream failed", e)
                 }
                 .collect { speed ->
                     // 1. Update State Manager for Speed
@@ -269,8 +275,6 @@ class SpeedMonitorService : Service() {
             if (isWifiConnected()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // Android 12+ - Use ConnectivityManager
-                    val connectivityManager =
-                        applicationContext.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
                     val network = connectivityManager.activeNetwork
                     val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
 
@@ -299,7 +303,7 @@ class SpeedMonitorService : Service() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Failed to read signal strength", e)
         }
         return ""
     }
@@ -345,6 +349,7 @@ class SpeedMonitorService : Service() {
             saveCurrentUsage()
         }
 
+        trafficStateManager.setServiceRunning(false)
         monitoringJob?.cancel()
         serviceScope.cancel()
     }

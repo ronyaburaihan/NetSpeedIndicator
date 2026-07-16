@@ -49,20 +49,6 @@ object FormatUtils {
     }
 
     /**
-     * Format speed to Mbps
-     * @param bytesPerSecond Speed in bytes per second
-     * @return Formatted string (e.g., "16.8 Mbps")
-     */
-    fun formatSpeedMbps(bytesPerSecond: Long): String {
-        val mbps = (bytesPerSecond * 8) / 1_000_000.0
-        return if (mbps < 0.1) {
-            "${(bytesPerSecond * 8) / 1000.0} Kbps"
-        } else {
-            String.format(Locale.US, "%.1f Mbps", mbps)
-        }
-    }
-
-    /**
      * Format speed for status bar icon (compact)
      * @param bytesPerSecond Speed in bytes per second
      * @return Pair of (Value String, Unit String) e.g. ("50", "KB")
