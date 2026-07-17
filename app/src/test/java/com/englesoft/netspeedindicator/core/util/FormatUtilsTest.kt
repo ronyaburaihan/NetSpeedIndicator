@@ -62,4 +62,30 @@ class FormatUtilsTest {
         assertEquals("00:01:05", FormatUtils.formatDuration(65))
         assertEquals("02:00:00", FormatUtils.formatDuration(7200))
     }
+
+    @Test
+    fun `formatSpeed handles very large values without crashing`() {
+        assertEquals("1.0 TB/s", FormatUtils.formatSpeed(1024L * 1024 * 1024 * 1024))
+        assertEquals("5.5 TB/s", FormatUtils.formatSpeed((5.5 * 1024 * 1024 * 1024 * 1024).toLong()))
+    }
+
+    @Test
+    fun `formatSpeedUnit handles very large values without crashing`() {
+        assertEquals("TB/s", FormatUtils.formatSpeedUnit(1024L * 1024 * 1024 * 1024))
+        assertEquals("TB/s", FormatUtils.formatSpeedUnit(10L * 1024 * 1024 * 1024 * 1024))
+    }
+
+    @Test
+    fun `formatSpeedCompact shows GB for values near GB threshold`() {
+        val nearGB = (1024.0 * 1024 * 1024 * 0.9996).toLong()
+        val result = FormatUtils.formatSpeedCompact(nearGB)
+        assertEquals("GB/s", result.second)
+    }
+
+    @Test
+    fun `formatSpeedCompact shows MB for values just below GB threshold`() {
+        val justBelowGB = (1024.0 * 1024 * 1024 * 0.9994).toLong()
+        val result = FormatUtils.formatSpeedCompact(justBelowGB)
+        assertEquals("MB/s", result.second)
+    }
 }
